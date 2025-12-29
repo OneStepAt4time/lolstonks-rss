@@ -1,0 +1,66 @@
+services:
+  lolstonksrss:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: lolstonksrss:latest
+    container_name: lolstonksrss
+    restart: unless-stopped
+
+    ports:
+      - "8002:8000"
+
+    volumes:
+      # Persist database on Windows host
+      # Use Windows-style paths when running: .\data maps to /app/data in container
+      - type: bind
+        source: ./data
+        target: /app/data
+
+      # Optional: Custom config (create .env file first)
+      # Uncomment if you want to use a custom .env file
+      # - type: bind
+      #   source: ./.env
+      #   target: /app/.env
+      #   read_only: true
+
+    environment:
+      # Override settings via environment variables
+      - DATABASE_PATH=/app/data/articles.db
+      - HOST=0.0.0.0
+      - PORT=8000
+      - LOG_LEVEL=INFO
+      - UPDATE_INTERVAL_MINUTES=30
+      - BASE_URL=http://localhost:8000
+
+      # RSS Configuration
+      - RSS_FEED_TITLE=League of Legends News
+      - RSS_FEED_DESCRIPTION=Latest LoL news and updates
+      - RSS_MAX_ITEMS=50
+
+      # Caching
+      - CACHE_TTL_SECONDS=21600
+      - BUILD_ID_CACHE_SECONDS=86400
+
+      # Locales
+      - SUPPORTED_LOCALES=en-us,it-it
+
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    networks:
+      - lolrss_network
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  lolrss_network:
+    driver: bridge
