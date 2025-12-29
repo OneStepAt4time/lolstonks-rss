@@ -1,0 +1,98 @@
+#!/bin/sh
+# Commit message validation hook for LoL Stonks RSS
+# Validates commit messages follow conventional commits format
+
+set -e
+
+COMMIT_MSG_FILE=$1
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+print_error() {
+    echo "${RED}[ERROR]${NC} $1"
+}
+
+print_success() {
+    echo "${GREEN}[SUCCESS]${NC} $1"
+}
+
+print_info() {
+    echo "${YELLOW}[INFO]${NC} $1"
+}
+
+# Skip merge commits
+if echo "$COMMIT_MSG" | grep -qE "^Merge "; then
+    print_info "Merge commit detected, skipping validation"
+    exit 0
+fi
+
+# Skip revert commits
+if echo "$COMMIT_MSG" | grep -qE "^Revert "; then
+    print_info "Revert commit detected, skipping validation"
+    exit 0
+fi
+
+# Conventional commit pattern
+# Format: type(scope): subject
+# Example: feat(rss): add RSS feed item limit
+PATTERN="^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z-]+\))?: .{1,72}$"
+
+# Get first line of commit message
+FIRST_LINE=$(echo "$COMMIT_MSG" | head -n 1)
+
+# Validate format
+if ! echo "$FIRST_LINE" | grep -qE "$PATTERN"; then
+    print_error "Invalid commit message format"
+    echo ""
+    print_info "Commit message must follow Conventional Commits format:"
+    echo ""
+    echo "  type(scope): subject"
+    echo ""
+    echo "Examples:"
+    echo "  feat(rss): add RSS feed item limit configuration"
+    echo "  fix(api): resolve database connection leak"
+    echo "  docs: update deployment guide for Windows"
+    echo "  test(rss): add validation tests"
+    echo ""
+    echo "Allowed types:"
+    echo "  feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert"
+    echo ""
+    echo "Allowed scopes (optional):"
+    echo "  api, rss, database, config, docker, ci, docs, tests, deployment"
+    echo ""
+    echo "Your commit message:"
+    echo "  $FIRST_LINE"
+    echo ""
+    print_info "See .gitmessage for more details"
+    exit 1
+fi
+
+# Validate subject doesn't end with period
+if echo "$FIRST_LINE" | grep -qE "\.$"; then
+    print_error "Subject should not end with a period"
+    exit 1
+fi
+
+# Validate subject doesn't start with uppercase (after type and scope)
+SUBJECT=$(echo "$FIRST_LINE" | sed -E 's/^[a-z]+(\([a-z-]+\))?: //')
+if echo "$SUBJECT" | grep -qE "^[A-Z]"; then
+    print_error "Subject should not start with uppercase letter"
+    print_info "Use: 'feat(rss): add new feature' not 'feat(rss): Add new feature'"
+    exit 1
+fi
+
+# Check message length
+if [ ${#FIRST_LINE} -gt 72 ]; then
+    print_error "Commit message subject is too long (${#FIRST_LINE} > 72 characters)"
+    exit 1
+fi
+
+# Success
+print_success "Commit message format is valid"
+
+exit 0

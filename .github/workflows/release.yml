@@ -1,0 +1,174 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.2.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Extract version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION=${GITHUB_REF#refs/tags/v}
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Generate changelog from git commits since last tag
+          PREVIOUS_TAG=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1) 2>/dev/null || echo "")
+
+          if [ -z "$PREVIOUS_TAG" ]; then
+            echo "## Changes" > CHANGELOG_RELEASE.md
+            git log --pretty=format:"- %s (%h)" >> CHANGELOG_RELEASE.md
+          else
+            echo "## Changes since $PREVIOUS_TAG" > CHANGELOG_RELEASE.md
+            git log $PREVIOUS_TAG..HEAD --pretty=format:"- %s (%h)" >> CHANGELOG_RELEASE.md
+          fi
+
+          # Categorize commits
+          echo "" >> CHANGELOG_RELEASE.md
+          echo "### Features" >> CHANGELOG_RELEASE.md
+          git log $PREVIOUS_TAG..HEAD --pretty=format:"- %s (%h)" --grep="^feat" >> CHANGELOG_RELEASE.md || echo "- No new features" >> CHANGELOG_RELEASE.md
+
+          echo "" >> CHANGELOG_RELEASE.md
+          echo "### Bug Fixes" >> CHANGELOG_RELEASE.md
+          git log $PREVIOUS_TAG..HEAD --pretty=format:"- %s (%h)" --grep="^fix" >> CHANGELOG_RELEASE.md || echo "- No bug fixes" >> CHANGELOG_RELEASE.md
+
+          echo "" >> CHANGELOG_RELEASE.md
+          echo "### Documentation" >> CHANGELOG_RELEASE.md
+          git log $PREVIOUS_TAG..HEAD --pretty=format:"- %s (%h)" --grep="^docs" >> CHANGELOG_RELEASE.md || echo "- No documentation changes" >> CHANGELOG_RELEASE.md
+
+      - name: Create Release Notes
+        id: release_notes
+        run: |
+          cat > RELEASE_NOTES.md << EOF
+          # LoL Stonks RSS v${{ steps.version.outputs.version }}
+
+          ## Summary
+          Release version ${{ steps.version.outputs.version }} of LoL Stonks RSS.
+
+          ## Installation
+
+          ### Docker
+          \`\`\`bash
+          docker pull ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
+          docker run -p 8000:8000 ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
+          \`\`\`
+
+          ### Python
+          \`\`\`bash
+          pip install lolstonksrss==${{ steps.version.outputs.version }}
+          \`\`\`
+
+          ## Changelog
+          $(cat CHANGELOG_RELEASE.md)
+
+          ## Docker Images
+          - \`ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}\`
+          - \`ghcr.io/${{ github.repository }}:latest\`
+
+          ## Verification
+          To verify the release:
+          \`\`\`bash
+          docker run --rm ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }} python -c "import src; print(src.__version__)"
+          \`\`\`
+
+          ## What's Changed
+          Full changelog: https://github.com/${{ github.repository }}/compare/$PREVIOUS_TAG...${{ steps.version.outputs.tag }}
+          EOF
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.version.outputs.tag }}
+          name: Release ${{ steps.version.outputs.version }}
+          bodyFile: RELEASE_NOTES.md
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.version, 'alpha') || contains(steps.version.outputs.version, 'beta') || contains(steps.version.outputs.version, 'rc') }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Release Assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes-${{ steps.version.outputs.version }}
+          path: |
+            RELEASE_NOTES.md
+            CHANGELOG_RELEASE.md
+
+  publish-docker:
+    name: Publish Docker Image
+    needs: create-release
+    uses: ./.github/workflows/docker-publish.yml
+    secrets: inherit
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: create-release
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/lolstonksrss/
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      - name: Build package
+        run: python -m build
+
+      - name: Check package
+        run: twine check dist/*
+
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: twine upload dist/*
+        if: ${{ secrets.PYPI_API_TOKEN != '' }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ github.run_id }}
+          path: dist/
