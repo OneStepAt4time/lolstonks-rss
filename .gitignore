@@ -87,3 +87,6 @@ site/
 
 # MCP Server Configuration (contains API keys - DO NOT COMMIT)
 .mcp.json
+
+# GLM Settings (contains API keys - DO NOT COMMIT)
+glm_settings.json
