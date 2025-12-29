@@ -1,0 +1,24 @@
+# Code owners for LoL Stonks RSS
+# These owners will be automatically requested for review when someone opens a pull request
+
+# Global owners - will be requested for all changes
+* @yourusername
+
+# Docker and deployment files
+/Dockerfile @yourusername
+/docker-compose.yml @yourusername
+/.dockerignore @yourusername
+/scripts/ @yourusername
+
+# Core source code
+/src/ @yourusername
+
+# Tests
+/tests/ @yourusername
+
+# Documentation
+/docs/ @yourusername
+/*.md @yourusername
+
+# CI/CD
+/.github/ @yourusername
