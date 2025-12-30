@@ -206,6 +206,202 @@ Esperto QA specializzato in testing Python, validazione RSS feed e testing conta
 - Docker container testing
 - Performance benchmarks
 
+#### 10. rss-validator
+**File**: `rss-validator.md`
+
+**ESPERTO RSS** - Specialista validazione RSS 2.0/Atom compliance, struttura XML, encoding e compatibilità feed reader.
+
+**Quando usarlo**:
+- Validazione compliance RSS 2.0
+- Verifica struttura XML
+- Controllo encoding caratteri
+- Test GUID uniqueness
+- Compatibilità feed reader
+
+**Competenze**:
+- RSS 2.0 specification
+- XML schema validation
+- Character encoding (UTF-8)
+- RFC 822 date validation
+- Feed reader compatibility
+
+### 🔒 Security & Compliance Agents
+
+#### 11. security-auditor
+**File**: `security-auditor.md`
+
+Esperto security auditor specializzato in SOC 2, ISO 27001 e OWASP Top 10 compliance.
+
+**Quando usarlo**:
+- Security assessments
+- Vulnerability analysis
+- Compliance validation
+- Risk assessment
+- Security posture review
+
+**Competenze**:
+- OWASP Top 10
+- SOC 2/ISO 27001
+- Threat modeling
+- Container security
+- Application security
+
+#### 12. security-engineer
+**File**: `security-engineer.md`
+
+DevSecOps engineer specializzato in remediation vulnerabilità, secrets detection e security automation.
+
+**Quando usarlo**:
+- Implementare fix sicurezza
+- Integrare security tools
+- Automatizzare security checks
+- Remediation vulnerabilità
+
+**Competenze**:
+- Secrets detection
+- Pre-commit hooks
+- Security scanning
+- Vulnerability remediation
+
+#### 13. secrets-scanner
+**File**: `secrets-scanner.md`
+
+**CACCIATORE DI SECRETS** - Specialista rilevamento credenziali hardcoded, API keys, token in codice e git history.
+
+**Quando usarlo**:
+- Audit secrets nel codice
+- Scansione git history
+- Validazione pre-commit
+- Assessment esposizione credenziali
+
+**Competenze**:
+- Pattern detection (API keys, tokens)
+- Git history scanning
+- Entropy analysis
+- False positive reduction
+
+#### 14. compliance-auditor
+**File**: `compliance-auditor.md`
+
+Esperto compliance SDLC, GitFlow validation e standards documentazione.
+
+**Quando usarlo**:
+- SDLC compliance audits
+- GitFlow validation
+- Documentation standards
+- Process compliance
+- Audit readiness
+
+**Competenze**:
+- GitFlow enforcement
+- Conventional Commits
+- Documentation standards
+- Process governance
+
+#### 15. git-workflow-manager
+**File**: `git-workflow-manager.md`
+
+Specialista GitFlow, branch protection e commit message validation.
+
+**Quando usarlo**:
+- GitFlow enforcement
+- Branch cleanup
+- Commit history maintenance
+- PR workflow automation
+
+**Competenze**:
+- GitFlow best practices
+- Conventional Commits
+- Branch protection
+- Git history management
+
+### 🛠️ Specialized Agents
+
+#### 16. refactoring-specialist
+**File**: `refactoring-specialist.md`
+
+Esperto code cleanup, dead code identification e technical debt reduction.
+
+**Quando usarlo**:
+- Identificazione dead code
+- Code cleanup
+- Ottimizzazione performance
+- Riduzione technical debt
+
+**Competenze**:
+- Dead code analysis
+- Safe refactoring
+- Performance optimization
+- Legacy code modernization
+
+#### 17. dependency-manager
+**File**: `dependency-manager.md`
+
+Specialista dependency security, license compliance e version updates.
+
+**Quando usarlo**:
+- Security scanning dipendenze
+- License compliance
+- Version updates
+- CVE monitoring
+
+**Competenze**:
+- Python packaging
+- Dependency resolution
+- Supply chain security
+- License compliance
+
+#### 18. documentation-auditor
+**File**: `documentation-auditor.md`
+
+Esperto qualità documentazione, completeness assessment e currency verification.
+
+**Quando usarlo**:
+- Audit documentazione
+- Verifica completezza docs
+- Cross-reference validation
+- Code documentation review
+
+**Competenze**:
+- Documentation standards
+- API documentation
+- Docstring coverage
+- Technical accuracy
+
+#### 19. ci-cd-auditor
+**File**: `ci-cd-auditor.md`
+
+Specialista validazione pipeline CI/CD, GitHub Actions audit e automation coverage.
+
+**Quando usarlo**:
+- CI/CD audits
+- Pipeline security review
+- Automation gap analysis
+- Deployment validation
+
+**Competenze**:
+- GitHub Actions
+- Pipeline security
+- Quality gates
+- Git hooks compliance
+
+#### 20. windows-deployment-validator
+**File**: `windows-deployment-validator.md`
+
+**ESPERTO WINDOWS** - Specialista deployment Windows Server, Docker Desktop validation e path handling.
+
+**Quando usarlo**:
+- Validazione deployment Windows
+- Docker Desktop configuration
+- Windows path compatibility
+- PowerShell script review
+
+**Competenze**:
+- Docker Desktop for Windows
+- Windows path handling
+- PowerShell security
+- Windows Server administration
+
 ## Pattern di Utilizzo
 
 ### Pattern 1: Feature Development
@@ -305,6 +501,17 @@ Claude Code automaticamente seleziona e invoca gli agenti appropriati in base al
 | Setup Docker | `devops-engineer` |
 | Review codice | `code-reviewer` |
 | Scrivere test | `qa-expert` |
+| **Validazione RSS 2.0** | `rss-validator` |
+| **Security assessment** | `security-auditor` |
+| **Fix vulnerabilità** | `security-engineer` |
+| **Rilevamento secrets/API keys** | `secrets-scanner` |
+| **Compliance SDLC** | `compliance-auditor` |
+| **GitFlow enforcement** | `git-workflow-manager` |
+| **Code cleanup/refactoring** | `refactoring-specialist` |
+| **Dependency security** | `dependency-manager` |
+| **Audit documentazione** | `documentation-auditor` |
+| **CI/CD pipeline audit** | `ci-cd-auditor` |
+| **Windows deployment** | `windows-deployment-validator` |
 | Task multi-dominio complesso | `master-orchestrator` |
 | Coordinare 3+ agenti | `multi-agent-coordinator` |
 | Scomporre task complesso | `agent-organizer` |
@@ -485,7 +692,8 @@ Per domande o problemi con il sistema di agenti:
 
 ---
 
-**Versione**: 1.0
+**Versione**: 2.0
 **Progetto**: LoL Stonks RSS
-**Data**: 2025-12-28
+**Data**: 2025-12-30
 **Framework**: VoltAgent Claude Code Subagents
+**Agenti Totali**: 22 (+ README)

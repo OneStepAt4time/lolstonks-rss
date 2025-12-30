@@ -32,14 +32,14 @@ jobs:
           path: ./
           base: ''
           head: HEAD
-          extra_args: --only-verified --fail
-        continue-on-error: true  # Non bloccare pipeline se trova secret
+          extra_args: --only-verified
+        continue-on-error: false  # BLOCK pipeline if secrets found
 
       - name: Gitleaks Secret Scan
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        continue-on-error: true
+        continue-on-error: false
 
   dependency-scan:
     name: Dependency Vulnerability Scan
@@ -74,13 +74,13 @@ jobs:
 
       - name: Safety Check (PyPI vulnerabilities)
         run: |
-          safety check --json || true
-        continue-on-error: true
+          safety check --json
+        continue-on-error: false
 
       - name: Pip-Audit (Alternative scanner)
         run: |
-          pip-audit --desc || true
-        continue-on-error: true
+          pip-audit --desc
+        continue-on-error: false
 
   container-scan:
     name: Container Security Scan
@@ -100,13 +100,13 @@ jobs:
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
-        continue-on-error: true
+        continue-on-error: false
 
       - name: Upload Trivy results to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results.sarif'
-        continue-on-error: true
+        continue-on-error: false
 
   code-scan:
     name: Static Application Security Testing (SAST)
@@ -135,9 +135,9 @@ jobs:
 
       - name: Run Bandit Security Scan
         run: |
-          bandit -r src/ -f json -o bandit-report.json || true
-          bandit -r src/ -f txt || true
-        continue-on-error: true
+          bandit -r src/ -f json -o bandit-report.json
+          bandit -r src/ -f txt
+        continue-on-error: false
 
       - name: Upload Bandit results
         uses: actions/upload-artifact@v4
