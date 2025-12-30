@@ -73,7 +73,8 @@ jobs:
             echo "  - $tag"
           done
           # Add deployment commands here
-          # Example: kubectl set image deployment/lolstonksrss lolstonksrss=${{ steps.meta.outputs.tags }}
+          # Example: kubectl set image deployment/lolstonksrss lolstonksrss=$IMAGE_TAG
+          # Note: Use a specific tag from the output above, not the full list
 
       - name: Verify Deployment
         run: |
