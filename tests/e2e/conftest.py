@@ -1,6 +1,8 @@
 """E2E test configuration."""
-import pytest
 import os
+
+import pytest
+
 
 @pytest.fixture(scope="session")
 def base_url():

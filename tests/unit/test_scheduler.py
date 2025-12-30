@@ -5,9 +5,10 @@ This module tests the scheduler functionality including
 periodic updates, manual triggers, and status reporting.
 """
 
-import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
 from datetime import datetime
+from unittest.mock import AsyncMock, patch
+
+import pytest
 
 from src.services.scheduler import NewsScheduler
 

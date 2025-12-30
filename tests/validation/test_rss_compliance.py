@@ -1,12 +1,15 @@
 """
 RSS 2.0 Compliance Validation Suite
 """
-import pytest
-import feedparser
-from xml.etree import ElementTree as ET
 from datetime import datetime
-from src.rss.generator import RSSFeedGenerator
+from xml.etree import ElementTree as ET
+
+import feedparser
+import pytest
+
 from src.models import Article, ArticleSource
+from src.rss.generator import RSSFeedGenerator
+
 
 @pytest.fixture
 def sample_article():

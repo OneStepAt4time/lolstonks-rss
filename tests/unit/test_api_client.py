@@ -9,14 +9,15 @@ This module contains comprehensive tests for the API client including:
 - Error handling
 """
 
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch, Mock
 from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
+
+import httpx
+import pytest
+
 from src.api_client import LoLNewsAPIClient
 from src.models import Article, ArticleSource
 from src.utils.cache import TTLCache
-import httpx
-
 
 # Mock HTML with buildId
 MOCK_HTML = '''

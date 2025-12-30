@@ -7,14 +7,14 @@ to trigger news updates at configured intervals.
 
 import logging
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import Any
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
-from src.services.update_service import UpdateService
-from src.database import ArticleRepository
 from src.config import get_settings
+from src.database import ArticleRepository
+from src.services.update_service import UpdateService
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -76,7 +76,7 @@ class NewsScheduler:
         self.is_running = False
         logger.info("Scheduler stopped")
 
-    async def trigger_update_now(self) -> Dict[str, Any]:
+    async def trigger_update_now(self) -> dict[str, Any]:
         """
         Manually trigger an immediate update.
 
@@ -86,7 +86,7 @@ class NewsScheduler:
         logger.info("Manual update triggered")
         return await self._update_job()
 
-    async def _update_job(self) -> Dict[str, Any]:
+    async def _update_job(self) -> dict[str, Any]:
         """
         Job function for updates.
 
@@ -100,14 +100,14 @@ class NewsScheduler:
             logger.error(f"Update job failed: {e}")
             return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """
         Get scheduler status.
 
         Returns:
             Status dictionary with job info and update service status
         """
-        jobs: List[Dict[str, Any]] = []
+        jobs: list[dict[str, Any]] = []
         for job in self.scheduler.get_jobs():
             jobs.append(
                 {

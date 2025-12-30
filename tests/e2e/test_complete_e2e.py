@@ -1,20 +1,20 @@
 """Complete End-to-End Test Suite for LoL Stonks RSS"""
 
-import pytest
-import asyncio
-import feedparser
+import sys
+import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
-import tempfile
-import sys
+
+import feedparser
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.api_client import LoLNewsAPIClient
 from src.database import ArticleRepository
+from src.models import Article, ArticleSource
 from src.rss.feed_service import FeedService
 from src.services.scheduler import NewsScheduler
-from src.models import Article, ArticleSource
 
 
 @pytest.fixture
@@ -125,13 +125,13 @@ async def test_complete_news_workflow(temp_db):
         assert len(articles) > 0
     except Exception as e:
         pytest.skip(f"API fetch failed: {e}")
-    
+
     new_count = 0
     for article in articles[:10]:
         if await temp_db.save(article):
             new_count += 1
     assert new_count > 0
-    
+
     feed_service = FeedService(temp_db, cache_ttl=300)
     feed_xml = await feed_service.get_main_feed("http://test/feed.xml", limit=20)
     feed = feedparser.parse(feed_xml)
@@ -150,7 +150,7 @@ async def test_multi_locale_workflow():
         articles_it = await client_it.fetch_news("it-it")
     except Exception as e:
         pytest.skip(f"API fetch failed: {e}")
-    
+
     assert len(articles_en) > 0
     assert len(articles_it) > 0
 

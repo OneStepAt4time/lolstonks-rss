@@ -1,12 +1,15 @@
 """
 End-to-End Test Suite
 """
-import pytest
 from datetime import datetime
+
 import feedparser
+import pytest
+
 from src.database import ArticleRepository
-from src.rss.feed_service import FeedService
 from src.models import Article, ArticleSource
+from src.rss.feed_service import FeedService
+
 
 @pytest.mark.slow
 @pytest.mark.e2e

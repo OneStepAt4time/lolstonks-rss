@@ -5,12 +5,13 @@ This module tests the update service functionality including
 fetching news from multiple sources and saving to database.
 """
 
-import pytest
-from unittest.mock import AsyncMock, patch
 from datetime import datetime
+from unittest.mock import AsyncMock
 
-from src.services.update_service import UpdateService
+import pytest
+
 from src.models import Article, ArticleSource
+from src.services.update_service import UpdateService
 
 
 @pytest.fixture

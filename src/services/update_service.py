@@ -7,12 +7,12 @@ from multiple LoL API locales and saving to the database.
 
 import logging
 from datetime import datetime
-from typing import Dict, List, Any
+from typing import Any
 
 from src.api_client import LoLNewsAPIClient
+from src.config import get_settings
 from src.database import ArticleRepository
 from src.models import Article
-from src.config import get_settings
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -42,7 +42,7 @@ class UpdateService:
         self.update_count: int = 0
         self.error_count: int = 0
 
-    async def update_all_sources(self) -> Dict[str, Any]:
+    async def update_all_sources(self) -> dict[str, Any]:
         """
         Fetch and save articles from all sources.
 
@@ -53,7 +53,7 @@ class UpdateService:
         logger.info("Starting update for all sources...")
         start_time = datetime.utcnow()
 
-        stats: Dict[str, Any] = {
+        stats: dict[str, Any] = {
             "started_at": start_time.isoformat(),
             "sources": {},
             "total_fetched": 0,
@@ -93,7 +93,7 @@ class UpdateService:
 
         return stats
 
-    async def _update_source(self, locale: str, client: LoLNewsAPIClient) -> Dict[str, int]:
+    async def _update_source(self, locale: str, client: LoLNewsAPIClient) -> dict[str, int]:
         """
         Update articles for a single source.
 
@@ -107,7 +107,7 @@ class UpdateService:
         logger.info(f"Fetching articles for {locale}...")
 
         # Fetch articles
-        articles: List[Article] = await client.fetch_news(locale)
+        articles: list[Article] = await client.fetch_news(locale)
 
         stats = {"fetched": len(articles), "new": 0, "duplicates": 0}
 
@@ -129,7 +129,7 @@ class UpdateService:
 
         return stats
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """
         Get current service status.
 

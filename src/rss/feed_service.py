@@ -5,14 +5,13 @@ This module provides the FeedService class which manages RSS feed generation
 with intelligent caching to reduce database load and improve performance.
 """
 
-from typing import Optional
-from datetime import datetime
-from src.models import Article, ArticleSource
-from src.rss.generator import RSSFeedGenerator
-from src.database import ArticleRepository
-from src.utils.cache import TTLCache
-from src.config import get_settings
 import logging
+
+from src.config import get_settings
+from src.database import ArticleRepository
+from src.models import ArticleSource
+from src.rss.generator import RSSFeedGenerator
+from src.utils.cache import TTLCache
 
 logger = logging.getLogger(__name__)
 settings = get_settings()

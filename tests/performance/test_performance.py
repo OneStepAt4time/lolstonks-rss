@@ -1,10 +1,13 @@
 """Performance Test Suite"""
-import pytest
 import time
 from datetime import datetime
+
+import pytest
+
 from src.database import ArticleRepository
-from src.rss.feed_service import FeedService
 from src.models import Article, ArticleSource
+from src.rss.feed_service import FeedService
+
 
 @pytest.mark.performance
 @pytest.mark.asyncio

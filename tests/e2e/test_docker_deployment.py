@@ -4,13 +4,12 @@ E2E tests for Docker deployment.
 This test suite validates that the Docker image can be built, deployed,
 and runs correctly on Windows with Docker Desktop.
 """
-import os
 import subprocess
 import time
-import httpx
+
 import feedparser
+import httpx
 import pytest
-from typing import List
 
 # Test configuration
 IMAGE_NAME = "lolstonksrss:test"
@@ -21,7 +20,7 @@ STARTUP_WAIT = 25  # seconds for container startup and initial news fetch
 HEALTH_CHECK_WAIT = 35  # seconds for health check to pass
 
 
-def run_command(cmd: List[str], capture_output: bool = True) -> subprocess.CompletedProcess:
+def run_command(cmd: list[str], capture_output: bool = True) -> subprocess.CompletedProcess:
     """Run a command and return the result."""
     return subprocess.run(
         cmd,

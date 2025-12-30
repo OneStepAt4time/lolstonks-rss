@@ -5,12 +5,14 @@ This module tests the FeedService class to ensure proper caching,
 feed generation, and database integration.
 """
 
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
-from src.rss.feed_service import FeedService
-from src.models import Article, ArticleSource
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from unittest.mock import AsyncMock, patch
+
 import feedparser
+import pytest
+
+from src.models import Article, ArticleSource
+from src.rss.feed_service import FeedService
 
 
 @pytest.fixture
@@ -23,7 +25,7 @@ def mock_repository() -> AsyncMock:
         Article(
             title="Test Article 1",
             url="https://example.com/test1",
-            pub_date=datetime(2025, 12, 28, 10, 0, 0, tzinfo=timezone.utc),
+            pub_date=datetime(2025, 12, 28, 10, 0, 0, tzinfo=UTC),
             guid="test-1",
             source=ArticleSource.LOL_EN_US,
             description="First test article",
@@ -32,7 +34,7 @@ def mock_repository() -> AsyncMock:
         Article(
             title="Test Article 2",
             url="https://example.com/test2",
-            pub_date=datetime(2025, 12, 27, 15, 30, 0, tzinfo=timezone.utc),
+            pub_date=datetime(2025, 12, 27, 15, 30, 0, tzinfo=UTC),
             guid="test-2",
             source=ArticleSource.LOL_EN_US,
             description="Second test article",
@@ -41,7 +43,7 @@ def mock_repository() -> AsyncMock:
         Article(
             title="Articolo di Test 3",
             url="https://example.com/test3",
-            pub_date=datetime(2025, 12, 26, 8, 0, 0, tzinfo=timezone.utc),
+            pub_date=datetime(2025, 12, 26, 8, 0, 0, tzinfo=UTC),
             guid="test-3",
             source=ArticleSource.LOL_IT_IT,
             description="Terzo articolo di test",
@@ -160,7 +162,7 @@ async def test_get_feed_by_source_it(mock_repository: AsyncMock) -> None:
         Article(
             title="Articolo Italiano",
             url="https://example.com/it",
-            pub_date=datetime(2025, 12, 28, 10, 0, 0, tzinfo=timezone.utc),
+            pub_date=datetime(2025, 12, 28, 10, 0, 0, tzinfo=UTC),
             guid="it-1",
             source=ArticleSource.LOL_IT_IT,
             description="Descrizione italiana",

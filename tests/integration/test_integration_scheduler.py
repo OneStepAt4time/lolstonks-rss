@@ -5,10 +5,10 @@ This module tests the full integration of scheduler, update service,
 database, and API client working together.
 """
 
-import pytest
-import asyncio
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
+import pytest
 
 from src.database import ArticleRepository
 from src.services.scheduler import NewsScheduler

@@ -5,8 +5,10 @@ This module tests the Article and ArticleSource models, including
 validation, serialization, and deserialization.
 """
 
-import pytest
 from datetime import datetime
+
+import pytest
+
 from src.models import Article, ArticleSource
 
 

@@ -1,8 +1,9 @@
 """Complete RSS 2.0 compliance validation tests for E2E testing."""
-import pytest
-import httpx
-import feedparser
 import xml.etree.ElementTree as ET
+
+import feedparser
+import httpx
+import pytest
 
 # BASE_URL is provided by conftest fixture
 RSS_20_VERSION = "rss20"

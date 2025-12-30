@@ -4,8 +4,8 @@ Tests for caching utilities.
 This module tests the TTLCache class for in-memory caching with TTL support.
 """
 
-import pytest
 from time import sleep
+
 from src.utils.cache import TTLCache
 
 

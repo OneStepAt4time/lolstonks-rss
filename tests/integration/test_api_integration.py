@@ -6,6 +6,7 @@ They are marked as 'slow' and can be run with: pytest -m slow
 """
 
 import pytest
+
 from src.api_client import LoLNewsAPIClient
 from src.models import Article, ArticleSource
 

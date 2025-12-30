@@ -5,10 +5,10 @@ This module tests the ArticleRepository class, including database
 initialization, CRUD operations, and querying.
 """
 
-import pytest
-import os
 from datetime import datetime
-from pathlib import Path
+
+import pytest
+
 from src.database import ArticleRepository
 from src.models import Article, ArticleSource
 

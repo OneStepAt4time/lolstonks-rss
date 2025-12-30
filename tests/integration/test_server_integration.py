@@ -6,14 +6,13 @@ including database operations and feed generation.
 """
 
 import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 
 from src.api.app import app, app_state
-from src.database import ArticleRepository
 from src.models import Article, ArticleSource
 
 
@@ -78,7 +77,7 @@ async def test_server_with_real_data() -> None:
             title="Test Article 1",
             url="https://example.com/article1",
             description="First test article",
-            pub_date=datetime.now(timezone.utc),
+            pub_date=datetime.now(UTC),
             source=ArticleSource.LOL_EN_US,
             categories=["Champions"],
             image_url="https://example.com/image1.jpg",
@@ -88,7 +87,7 @@ async def test_server_with_real_data() -> None:
             title="Test Article 2",
             url="https://example.com/article2",
             description="Second test article",
-            pub_date=datetime.now(timezone.utc),
+            pub_date=datetime.now(UTC),
             source=ArticleSource.LOL_IT_IT,
             categories=["Patches"],
             image_url=None,

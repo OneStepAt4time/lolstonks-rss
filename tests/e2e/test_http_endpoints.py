@@ -1,11 +1,10 @@
 """E2E tests for all HTTP endpoints."""
-import pytest
-import httpx
-import feedparser
 import time
-from datetime import datetime
-from typing import Dict, Any, List
 import xml.etree.ElementTree as ET
+
+import feedparser
+import httpx
+import pytest
 
 BASE_URL = "http://localhost:8000"
 TIMEOUT = 60
@@ -14,7 +13,7 @@ TIMEOUT = 60
 class EndpointMetrics:
     def __init__(self):
         self.results = []
-    
+
     def add_result(self, endpoint, method, status_code, response_time, success, details=""):
         self.results.append({
             "endpoint": endpoint,
@@ -24,7 +23,7 @@ class EndpointMetrics:
             "success": success,
             "details": details
         })
-    
+
     def get_summary(self):
         total = len(self.results)
         passed = sum(1 for r in self.results if r["success"])
@@ -41,33 +40,33 @@ metrics = EndpointMetrics()
 def validate_rss_feed(xml_content, expected_version="rss20"):
     validation_errors = []
     warnings = []
-    
+
     try:
         feed = feedparser.parse(xml_content)
-        
+
         if feed.version != expected_version:
             validation_errors.append(f"Expected RSS version {expected_version}, got {feed.version}")
-        
+
         if not feed.feed.get("title"):
             validation_errors.append("Missing feed title")
-        
+
         if not feed.feed.get("link"):
             validation_errors.append("Missing feed link")
-        
+
         if len(feed.entries) == 0:
             warnings.append("Feed has no entries")
-        
+
         for i, entry in enumerate(feed.entries[:5]):
             if not entry.get("title"):
                 validation_errors.append(f"Entry {i}: Missing title")
             if not entry.get("link"):
                 validation_errors.append(f"Entry {i}: Missing link")
-        
+
         try:
             ET.fromstring(xml_content)
         except ET.ParseError as e:
             validation_errors.append(f"Invalid XML structure: {e}")
-        
+
         return {
             "valid": len(validation_errors) == 0,
             "feed_version": feed.version,

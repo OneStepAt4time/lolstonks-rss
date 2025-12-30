@@ -5,9 +5,9 @@ This module provides simple in-memory caching with TTL support
 for API responses and build IDs.
 """
 
-from typing import Any, Optional, Dict
-from datetime import datetime, timedelta
 import logging
+from datetime import datetime, timedelta
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ class TTLCache:
             default_ttl_seconds: Default TTL in seconds (default: 1 hour)
         """
         self.default_ttl = default_ttl_seconds
-        self._cache: Dict[str, tuple[Any, datetime]] = {}
+        self._cache: dict[str, tuple[Any, datetime]] = {}
 
     def set(self, key: str, value: Any, ttl_seconds: Optional[int] = None) -> None:
         """

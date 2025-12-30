@@ -5,11 +5,13 @@ This module provides an async SQLite repository for storing and retrieving
 news articles. It handles schema creation, CRUD operations, and indexing.
 """
 
-import aiosqlite
-from typing import List, Optional
-from pathlib import Path
-from src.models import Article
 import logging
+from pathlib import Path
+from typing import Optional
+
+import aiosqlite
+
+from src.models import Article
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +97,7 @@ class ArticleRepository:
             logger.debug(f"Duplicate article skipped: {article.guid}")
             return False
 
-    async def save_many(self, articles: List[Article]) -> int:
+    async def save_many(self, articles: list[Article]) -> int:
         """
         Save multiple articles to the database.
 
@@ -111,7 +113,7 @@ class ArticleRepository:
                 count += 1
         return count
 
-    async def get_latest(self, limit: int = 50, source: Optional[str] = None) -> List[Article]:
+    async def get_latest(self, limit: int = 50, source: Optional[str] = None) -> list[Article]:
         """
         Get latest articles, optionally filtered by source.
 
