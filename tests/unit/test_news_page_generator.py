@@ -5,6 +5,7 @@ Tests the HTML news page generation functionality including template
 rendering, article formatting, and file generation.
 """
 
+import re
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
@@ -293,10 +294,19 @@ class TestHTMLValidation:
 
             content = output_file.read_text(encoding="utf-8")
 
-            # Basic HTML validation
-            assert content.count("<html") == content.count("</html>")
-            assert content.count("<head") == content.count("</head>")
-            assert content.count("<body") == content.count("</body>")
+            # Basic HTML validation using regex to handle attributes
+            # Count opening tags that may have attributes: <html>, <html lang="en">, etc.
+            html_open_count = len(re.findall(r"<html[\s>]", content))
+            html_close_count = len(re.findall(r"</html>", content))
+            assert html_open_count == html_close_count, f"HTML tag mismatch: {html_open_count} opening, {html_close_count} closing"
+
+            head_open_count = len(re.findall(r"<head[\s>]", content))
+            head_close_count = len(re.findall(r"</head>", content))
+            assert head_open_count == head_close_count, f"HEAD tag mismatch: {head_open_count} opening, {head_close_count} closing"
+
+            body_open_count = len(re.findall(r"<body[\s>]", content))
+            body_close_count = len(re.findall(r"</body>", content))
+            assert body_open_count == body_close_count, f"BODY tag mismatch: {body_open_count} opening, {body_close_count} closing"
 
             # Check for meta tags
             assert '<meta charset="UTF-8">' in content
