@@ -1,0 +1,18 @@
+# Gitleaks configuration for LoL Stonks RSS
+# This excludes documentation files that contain example code (not real secrets)
+
+[extend]
+useDefault = true
+
+# Exclude agent documentation files (contain example code for demonstration)
+allowlist = [
+    # Rule ID: stripe-access-token
+    # Reason: security-engineer.md contains example code with fake placeholders
+    description = "Exclude .claude/agents/ documentation files with example code"
+    paths = [
+        '''\.claude/agents/''',
+    ]
+    ruleIDs = [
+        "stripe-access-token",
+    ]
+]

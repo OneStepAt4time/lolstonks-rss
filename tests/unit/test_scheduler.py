@@ -34,7 +34,8 @@ def test_scheduler_initialization(scheduler: NewsScheduler) -> None:
     assert scheduler.scheduler is not None
 
 
-def test_scheduler_start(scheduler: NewsScheduler) -> None:
+@pytest.mark.asyncio
+async def test_scheduler_start(scheduler: NewsScheduler) -> None:
     """Test starting the scheduler."""
     scheduler.start()
     assert scheduler.is_running
@@ -49,7 +50,8 @@ def test_scheduler_start(scheduler: NewsScheduler) -> None:
     scheduler.stop()
 
 
-def test_scheduler_start_already_running(
+@pytest.mark.asyncio
+async def test_scheduler_start_already_running(
     scheduler: NewsScheduler, caplog: pytest.LogCaptureFixture
 ) -> None:
     """Test starting scheduler when already running."""
@@ -64,7 +66,8 @@ def test_scheduler_start_already_running(
     scheduler.stop()
 
 
-def test_scheduler_stop(scheduler: NewsScheduler) -> None:
+@pytest.mark.asyncio
+async def test_scheduler_stop(scheduler: NewsScheduler) -> None:
     """Test stopping the scheduler."""
     scheduler.start()
     assert scheduler.is_running
@@ -127,7 +130,8 @@ def test_get_status_not_running(scheduler: NewsScheduler) -> None:
     assert len(status["jobs"]) == 0
 
 
-def test_get_status_running(scheduler: NewsScheduler) -> None:
+@pytest.mark.asyncio
+async def test_get_status_running(scheduler: NewsScheduler) -> None:
     """Test getting status when scheduler is running."""
     scheduler.start()
 
@@ -173,7 +177,8 @@ async def test_update_job_error(scheduler: NewsScheduler) -> None:
         assert "Database error" in stats["error"]
 
 
-def test_scheduler_with_custom_interval(mock_repository: AsyncMock) -> None:
+@pytest.mark.asyncio
+async def test_scheduler_with_custom_interval(mock_repository: AsyncMock) -> None:
     """Test creating scheduler with custom interval."""
     scheduler = NewsScheduler(mock_repository, interval_minutes=60)
     assert scheduler.interval_minutes == 60
@@ -185,7 +190,8 @@ def test_scheduler_with_custom_interval(mock_repository: AsyncMock) -> None:
     scheduler.stop()
 
 
-def test_scheduler_prevents_overlapping_jobs(scheduler: NewsScheduler) -> None:
+@pytest.mark.asyncio
+async def test_scheduler_prevents_overlapping_jobs(scheduler: NewsScheduler) -> None:
     """Test that scheduler is configured to prevent overlapping jobs."""
     scheduler.start()
 
@@ -217,7 +223,8 @@ async def test_scheduler_integration_with_update_service(
     assert "total_duplicates" in stats
 
 
-def test_scheduler_job_configuration(scheduler: NewsScheduler) -> None:
+@pytest.mark.asyncio
+async def test_scheduler_job_configuration(scheduler: NewsScheduler) -> None:
     """Test that scheduler job is configured correctly."""
     scheduler.start()
 
