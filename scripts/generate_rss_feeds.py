@@ -175,11 +175,8 @@ async def generate_feeds(
             # Build feed URL
             feed_url = f"{feed_base_url}/{config['filename']}"
 
-            # Generate RSS XML
-            if source:
-                feed_xml = generator.generate_feed_by_source(articles, source, feed_url)
-            else:
-                feed_xml = generator.generate_feed(articles, feed_url)
+            # Generate RSS XML (articles are already filtered by source if provided)
+            feed_xml = generator.generate_feed(articles, feed_url)
 
             # Determine output path
             feed_path = output_path / config["filename"]
