@@ -331,7 +331,6 @@ class NewsArticle(BaseModel):
 ### Error Handling
 ```python
 import logging
-from typing import Never
 
 logger = logging.getLogger(__name__)
 

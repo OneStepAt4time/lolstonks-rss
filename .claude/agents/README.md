@@ -696,4 +696,4 @@ Per domande o problemi con il sistema di agenti:
 **Progetto**: LoL Stonks RSS
 **Data**: 2025-12-30
 **Framework**: VoltAgent Claude Code Subagents
-**Agenti Totali**: 20 (+ README)
+**Agenti Totali**: 22 (+ README)
