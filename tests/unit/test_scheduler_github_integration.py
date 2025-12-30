@@ -30,37 +30,47 @@ def scheduler(mock_repository: AsyncMock) -> NewsScheduler:
 
 @pytest.mark.asyncio
 async def test_github_pages_sync_disabled_by_default(
-    scheduler: NewsScheduler, mock_repository: AsyncMock
+    scheduler: NewsScheduler, mock_repository: AsyncMock, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Test that GitHub Pages sync is disabled by default."""
-    # Mock update service to return new articles
-    _mock_articles = [
-        Article(
-            title="Test Article",
-            url="http://test.com/1",
-            pub_date=datetime.utcnow(),
-            guid="test-1",
-            source=ArticleSource.LOL_EN_US,
-            description="Test",
-            categories=["News"],
-        )
-    ]
+    # Ensure env vars don't interfere with test (remove real .env values)
+    monkeypatch.delenv("ENABLE_GITHUB_PAGES_SYNC", raising=False)
+    monkeypatch.delenv("GITHUB_TOKEN", raising=False)
 
-    with patch.object(
-        scheduler.update_service, "update_all_sources", new=AsyncMock()
-    ) as mock_update:
-        mock_update.return_value = {
-            "total_new": 1,
-            "total_fetched": 1,
-            "total_duplicates": 0,
-        }
+    # Mock settings to disable GitHub sync (test default behavior)
+    with patch("src.services.scheduler.settings") as mock_settings:
+        mock_settings.enable_github_pages_sync = False
+        mock_settings.github_token = None
+        mock_settings.github_repository = "owner/repo"
 
-        # No GitHub dispatcher should be called
-        with patch("src.services.scheduler.GitHubWorkflowDispatcher") as mock_dispatcher:
-            await scheduler._update_job()
+        # Mock update service to return new articles
+        _mock_articles = [
+            Article(
+                title="Test Article",
+                url="http://test.com/1",
+                pub_date=datetime.utcnow(),
+                guid="test-1",
+                source=ArticleSource.LOL_EN_US,
+                description="Test",
+                categories=["News"],
+            )
+        ]
 
-            # Verify dispatcher was never instantiated (feature disabled by default)
-            mock_dispatcher.assert_not_called()
+        with patch.object(
+            scheduler.update_service, "update_all_sources", new=AsyncMock()
+        ) as mock_update:
+            mock_update.return_value = {
+                "total_new": 1,
+                "total_fetched": 1,
+                "total_duplicates": 0,
+            }
+
+            # No GitHub dispatcher should be called
+            with patch("src.services.scheduler.GitHubWorkflowDispatcher") as mock_dispatcher:
+                await scheduler._update_job()
+
+                # Verify dispatcher was never instantiated (feature disabled by default)
+                mock_dispatcher.assert_not_called()
 
 
 @pytest.mark.asyncio

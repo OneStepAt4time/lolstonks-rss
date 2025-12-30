@@ -8,7 +8,7 @@ including source and category-based filtering.
 import logging
 import re
 from contextlib import asynccontextmanager
-from typing import Any
+from typing import Any, cast
 
 from fastapi import FastAPI, HTTPException, Path, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -113,7 +113,7 @@ def get_feed_service() -> FeedService:
     service = app_state.get("feed_service")
     if not service:
         raise HTTPException(status_code=500, detail="Service not initialized")
-    return service
+    return cast(FeedService, service)
 
 
 @app.get("/api/articles", response_model=list[dict[str, Any]])
@@ -374,7 +374,7 @@ async def get_scheduler_status() -> dict[str, Any]:
     if not scheduler:
         raise HTTPException(status_code=500, detail="Scheduler not initialized")
 
-    return scheduler.get_status()
+    return cast(dict[str, Any], scheduler.get_status())
 
 
 @app.post("/admin/scheduler/trigger")
@@ -399,4 +399,4 @@ async def trigger_update(request: Request) -> dict[str, Any]:
         raise HTTPException(status_code=500, detail="Scheduler not initialized")
 
     stats = await scheduler.trigger_update_now()
-    return stats
+    return cast(dict[str, Any], stats)
