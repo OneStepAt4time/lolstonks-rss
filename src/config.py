@@ -131,7 +131,7 @@ class Settings(BaseSettings):
         default=None, description="GitHub Personal Access Token for triggering workflows"
     )
     github_repository: str = Field(
-        default="OneStepAt4time/lolstonksrss",
+        default="OneStepAt4time/lolstonks-rss",
         description="GitHub repository in format 'owner/repo'",
     )
     enable_github_pages_sync: bool = Field(

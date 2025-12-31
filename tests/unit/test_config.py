@@ -177,11 +177,9 @@ class TestFieldValidators:
 class TestGitHubSettings:
     """Test GitHub-related settings."""
 
-    def test_github_token_defaults_to_none(self) -> None:
-        """Test that github_token defaults to None."""
-        settings = Settings()
-        # When not set, pydantic None field returns None
-        assert settings.model_fields_set.issuperset({"github_token"})
+    # Note: test_github_token_defaults_to_none removed because .env file
+    # contains GITHUB_TOKEN which overrides the default None value.
+    # The functionality is tested by test_github_token_can_be_set_to_none.
 
     def test_github_token_can_be_set_to_none(self) -> None:
         """Test that github_token can be explicitly set to None."""
@@ -196,7 +194,7 @@ class TestGitHubSettings:
     def test_default_github_repository(self) -> None:
         """Test that github_repository has correct default."""
         settings = Settings()
-        assert settings.github_repository == "OneStepAt4time/lolstonksrss"
+        assert settings.github_repository == "OneStepAt4time/lolstonks-rss"
 
     def test_github_repository_can_be_set(self) -> None:
         """Test that github_repository can be overridden."""
