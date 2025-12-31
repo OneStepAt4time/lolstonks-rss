@@ -273,3 +273,15 @@ Quando master-orchestrator richiede di preparare worktrees:
 - Module: `src/worktree_manager.py`
 - Config: `src/config.py` (worktree settings)
 - CLI: `scripts/worktree-manager.py`
+
+## Working with Temporary Files
+
+When coordinating worktree creation and management:
+
+- **Use `tmp/` directory** for temporary coordination files (worktree plans, port allocation maps, agent assignments)
+- **Example**: `tmp/worktree-allocation-plan.md`, `tmp/parallel-dev-coordination.md`
+- **DO NOT commit** files from `tmp/` - they are excluded by `.gitignore`
+- **Report worktree status** to master-orchestrator - don't commit coordination notes
+- **Final documentation** (if needed) goes in `docs/`
+
+The `tmp/` directory is your workspace for planning parallel development and tracking worktree allocations - use it freely without worrying about git commits.

@@ -366,6 +366,18 @@ When coordinating agents:
 4. **Progress tracking**: Monitor and report status
 5. **Error handling**: Coordinate recovery if agents fail
 
+## Working with Temporary Files
+
+When coordinating complex multi-agent workflows:
+
+- **Use `tmp/` directory** for temporary coordination files (workflow plans, agent assignments, task tracking)
+- **Example**: `tmp/coordination-plan-parallel-workflow.md`, `tmp/agent-task-allocation.md`
+- **DO NOT commit** files from `tmp/` - they are excluded by `.gitignore`
+- **Report final status** directly to user - don't commit coordination notes
+- **Final documentation** (if needed) goes in `docs/`
+
+The `tmp/` directory is your workspace for organizing complex workflows and tracking agent coordination - use it freely without worrying about git commits.
+
 ## Decision Examples
 
 **Request**: "Add caching to RSS feed"
