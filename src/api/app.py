@@ -62,9 +62,9 @@ async def lifespan(app: FastAPI):  # type: ignore[no-untyped-def]
     scheduler = NewsScheduler(repository, interval_minutes=settings.update_interval_minutes)
     scheduler.start()
 
-    # Trigger initial update
-    logger.info("Triggering initial update...")
-    await scheduler.trigger_update_now()
+    # Note: Not triggering initial update on startup to avoid blocking
+    # The scheduler will fetch news according to its interval
+    logger.info("Scheduler started, will fetch news on next scheduled interval")
 
     # Store in app state
     app_state["repository"] = repository
