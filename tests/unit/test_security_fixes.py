@@ -190,8 +190,9 @@ async def test_cors_headers_match_configuration(client: AsyncClient) -> None:
     assert settings.allowed_origins != ["*"]
     assert "*" not in settings.allowed_origins
 
-    # Make a request and check CORS headers
-    response = await client.get("/health")
+    # Make a request to /ping (doesn't require service initialization)
+    # and check that the request succeeds (CORS allows it)
+    response = await client.get("/ping")
     assert response.status_code == 200
 
 

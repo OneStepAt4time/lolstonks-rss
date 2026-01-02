@@ -4,6 +4,7 @@ E2E tests for Docker deployment.
 This test suite validates that the Docker image can be built, deployed,
 and runs correctly on Windows with Docker Desktop.
 """
+
 import subprocess
 import time
 

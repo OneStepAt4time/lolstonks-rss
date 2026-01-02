@@ -1,4 +1,5 @@
 """Complete RSS 2.0 compliance validation tests for E2E testing."""
+
 import xml.etree.ElementTree as ET
 
 import feedparser

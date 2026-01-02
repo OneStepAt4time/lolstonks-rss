@@ -1,4 +1,5 @@
 """Performance Test Suite"""
+
 import time
 from datetime import datetime
 

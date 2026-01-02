@@ -140,9 +140,10 @@ class TestGenerateNewsPage:
         output_file = tmp_path / "test_news.html"
 
         # Mock the repository and settings
-        with patch("scripts.generate_news_page.get_settings") as mock_settings, patch(
-            "scripts.generate_news_page.ArticleRepository"
-        ) as mock_repo_class:
+        with (
+            patch("scripts.generate_news_page.get_settings") as mock_settings,
+            patch("scripts.generate_news_page.ArticleRepository") as mock_repo_class,
+        ):
             # Setup mock settings
             mock_settings.return_value.database_path = "test.db"
 
@@ -175,9 +176,10 @@ class TestGenerateNewsPage:
         """Test generation when database is empty."""
         output_file = tmp_path / "empty_news.html"
 
-        with patch("scripts.generate_news_page.get_settings") as mock_settings, patch(
-            "scripts.generate_news_page.ArticleRepository"
-        ) as mock_repo_class:
+        with (
+            patch("scripts.generate_news_page.get_settings") as mock_settings,
+            patch("scripts.generate_news_page.ArticleRepository") as mock_repo_class,
+        ):
             mock_settings.return_value.database_path = "test.db"
             mock_repo = AsyncMock()
             mock_repo_class.return_value = mock_repo
@@ -193,9 +195,10 @@ class TestGenerateNewsPage:
         """Test that article limit is respected."""
         output_file = tmp_path / "limited_news.html"
 
-        with patch("scripts.generate_news_page.get_settings") as mock_settings, patch(
-            "scripts.generate_news_page.ArticleRepository"
-        ) as mock_repo_class:
+        with (
+            patch("scripts.generate_news_page.get_settings") as mock_settings,
+            patch("scripts.generate_news_page.ArticleRepository") as mock_repo_class,
+        ):
             mock_settings.return_value.database_path = "test.db"
             mock_repo = AsyncMock()
             mock_repo_class.return_value = mock_repo
@@ -211,9 +214,10 @@ class TestGenerateNewsPage:
         """Test that parent directories are created if they don't exist."""
         output_file = tmp_path / "nested" / "dir" / "news.html"
 
-        with patch("scripts.generate_news_page.get_settings") as mock_settings, patch(
-            "scripts.generate_news_page.ArticleRepository"
-        ) as mock_repo_class:
+        with (
+            patch("scripts.generate_news_page.get_settings") as mock_settings,
+            patch("scripts.generate_news_page.ArticleRepository") as mock_repo_class,
+        ):
             mock_settings.return_value.database_path = "test.db"
             mock_repo = AsyncMock()
             mock_repo_class.return_value = mock_repo
@@ -229,9 +233,10 @@ class TestGenerateNewsPage:
         """Test that generated HTML contains required elements."""
         output_file = tmp_path / "full_news.html"
 
-        with patch("scripts.generate_news_page.get_settings") as mock_settings, patch(
-            "scripts.generate_news_page.ArticleRepository"
-        ) as mock_repo_class:
+        with (
+            patch("scripts.generate_news_page.get_settings") as mock_settings,
+            patch("scripts.generate_news_page.ArticleRepository") as mock_repo_class,
+        ):
             mock_settings.return_value.database_path = "test.db"
             mock_repo = AsyncMock()
             mock_repo_class.return_value = mock_repo
@@ -282,9 +287,10 @@ class TestHTMLValidation:
         """Test that generated HTML has valid structure."""
         output_file = tmp_path / "valid_news.html"
 
-        with patch("scripts.generate_news_page.get_settings") as mock_settings, patch(
-            "scripts.generate_news_page.ArticleRepository"
-        ) as mock_repo_class:
+        with (
+            patch("scripts.generate_news_page.get_settings") as mock_settings,
+            patch("scripts.generate_news_page.ArticleRepository") as mock_repo_class,
+        ):
             mock_settings.return_value.database_path = "test.db"
             mock_repo = AsyncMock()
             mock_repo_class.return_value = mock_repo
@@ -324,9 +330,10 @@ class TestHTMLValidation:
         """Test that responsive design meta tags are present."""
         output_file = tmp_path / "responsive_news.html"
 
-        with patch("scripts.generate_news_page.get_settings") as mock_settings, patch(
-            "scripts.generate_news_page.ArticleRepository"
-        ) as mock_repo_class:
+        with (
+            patch("scripts.generate_news_page.get_settings") as mock_settings,
+            patch("scripts.generate_news_page.ArticleRepository") as mock_repo_class,
+        ):
             mock_settings.return_value.database_path = "test.db"
             mock_repo = AsyncMock()
             mock_repo_class.return_value = mock_repo

@@ -4,6 +4,7 @@ Complete scheduler E2E tests.
 This module provides comprehensive end-to-end testing for the scheduler functionality
 including automatic updates, manual triggers, status reporting, and error handling.
 """
+
 import asyncio
 import os
 import tempfile
