@@ -433,3 +433,18 @@ jobs:
             echo "Please investigate the deployment logs."
             exit 1
           fi
+
+  workflow-success:
+    name: Workflow Status
+    needs: pre-deploy
+    if: always() && needs.pre-deploy.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mark workflow as successful
+        run: |
+          if [ "${{ needs.pre-deploy.outputs.should_deploy }}" = "true" ]; then
+            echo "✅ Deployment workflow proceeding with image tag: ${{ needs.pre-deploy.outputs.image_tag }}"
+          else
+            echo "ℹ️ Deployment workflow skipped (Windows Server secrets not configured)"
+          fi
+          echo "Workflow validation completed successfully"

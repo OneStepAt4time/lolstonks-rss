@@ -50,10 +50,12 @@ jobs:
               echo "  Current ref: $GITHUB_REF"
               echo "  To create a release: git tag -a v1.0.0 -m 'Release v1.0.0' && git push origin v1.0.0"
               echo "should_proceed=false" >> $GITHUB_OUTPUT
+              exit 0
             fi
           else
             echo "❌ Unexpected event: ${{ github.event_name }}"
             echo "should_proceed=false" >> $GITHUB_OUTPUT
+            exit 0
           fi
 
   create-release:
@@ -214,3 +216,18 @@ jobs:
         with:
           name: dist-${{ github.run_id }}
           path: dist/
+
+  workflow-success:
+    name: Workflow Status
+    needs: validate-trigger
+    if: always() && needs.validate-trigger.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mark workflow as successful
+        run: |
+          if [ "${{ needs.validate-trigger.outputs.should_proceed }}" = "true" ]; then
+            echo "✅ Release workflow proceeding with version: ${{ needs.validate-trigger.outputs.version }}"
+          else
+            echo "ℹ️ Release workflow skipped (not a tag push or manual dispatch)"
+          fi
+          echo "Workflow validation completed successfully"
