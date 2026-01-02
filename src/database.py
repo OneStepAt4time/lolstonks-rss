@@ -327,6 +327,7 @@ class ArticleRepository:
             List of Article instances for the locale group
         """
         placeholders = ",".join("?" * len(locale_group))
+        # nosec B608 - safe: placeholders only contains ? characters
         query = f"""
             SELECT * FROM articles
             WHERE locale IN ({placeholders})
