@@ -18,6 +18,7 @@ from typing import Any
 import httpx
 
 from src.models import Article, ArticleSource
+from src.scrapers.robots_txt import RobotsParser, get_global_parser
 from src.utils.circuit_breaker import (
     CircuitBreakerConfig,
     get_circuit_breaker_registry,
@@ -141,6 +142,9 @@ class BaseScraper(ABC):
         )
         self._circuit_breaker = registry.get(config.source_id, config=cb_config)
 
+        # Get robots.txt parser for legal compliance
+        self._robots_parser: RobotsParser = get_global_parser()
+
     @property
     def client(self) -> httpx.AsyncClient:
         """
@@ -203,8 +207,8 @@ class BaseScraper(ABC):
         """
         Fetch HTML content from a URL with rate limiting.
 
-        This method respects the configured rate limit by checking the
-        last fetch time and sleeping if necessary.
+        This method respects robots.txt rules and the configured rate limit
+        by checking robots.txt permissions and the last fetch time.
 
         Args:
             url: URL to fetch HTML from
@@ -215,7 +219,14 @@ class BaseScraper(ABC):
         Raises:
             httpx.HTTPStatusError: If HTTP request fails with non-2xx status
             httpx.TimeoutException: If request times out
+            PermissionError: If robots.txt disallows fetching this URL
         """
+        # Check robots.txt compliance
+        allowed = await self._robots_parser.can_fetch(url, self.config.get_user_agent())
+        if not allowed:
+            logger.warning(f"[{self.config.source_id}] robots.txt BLOCKED {url}, skipping fetch")
+            raise PermissionError(f"robots.txt disallows fetching {url}")
+
         await self._respect_rate_limit()
         response = await self.client.get(url)
         response.raise_for_status()
@@ -226,6 +237,8 @@ class BaseScraper(ABC):
         """
         Fetch JSON content from a URL with rate limiting.
 
+        This method respects robots.txt rules and the configured rate limit.
+
         Args:
             url: URL to fetch JSON from
 
@@ -235,7 +248,14 @@ class BaseScraper(ABC):
         Raises:
             httpx.HTTPStatusError: If HTTP request fails
             ValueError: If response is not valid JSON
+            PermissionError: If robots.txt disallows fetching this URL
         """
+        # Check robots.txt compliance
+        allowed = await self._robots_parser.can_fetch(url, self.config.get_user_agent())
+        if not allowed:
+            logger.warning(f"[{self.config.source_id}] robots.txt BLOCKED {url}, skipping fetch")
+            raise PermissionError(f"robots.txt disallows fetching {url}")
+
         await self._respect_rate_limit()
         response = await self.client.get(url)
         response.raise_for_status()
