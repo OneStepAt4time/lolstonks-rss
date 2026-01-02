@@ -68,7 +68,7 @@ def get_random_user_agent() -> str:
     Returns:
         Random browser user-agent string
     """
-    return random.choice(_BROWSER_USER_AGENTS)
+    return random.choice(_BROWSER_USER_AGENTS)  # nosec B311 - not used for cryptographic purposes
 
 
 def get_default_user_agent() -> str:
