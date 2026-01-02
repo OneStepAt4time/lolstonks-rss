@@ -110,7 +110,8 @@ class CircuitBreaker:
     def _calculate_retry_delay(self, attempt: int) -> float:
         exponential_delay = self.config.retry_base_delay * (2**attempt)
         jitter_range = exponential_delay * self.config.retry_jitter
-        jitter = random.uniform(-jitter_range, jitter_range)
+        # nosec - Random used for jitter in retry delays, not for cryptographic purposes (B311)
+        jitter = random.uniform(-jitter_range, jitter_range)  # nosec
         return float(max(0.1, min(exponential_delay + jitter, self.config.retry_max_delay)))
 
     def _should_attempt_reset(self) -> bool:

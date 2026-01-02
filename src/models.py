@@ -394,9 +394,11 @@ class Article:
             image_url=data.get("image_url"),
             author=data.get("author", "Riot Games"),
             categories=data.get("categories", "").split(",") if data.get("categories") else [],
-            created_at=datetime.fromisoformat(data["created_at"])
-            if data.get("created_at")
-            else datetime.utcnow(),
+            created_at=(
+                datetime.fromisoformat(data["created_at"])
+                if data.get("created_at")
+                else datetime.utcnow()
+            ),
             locale=data.get("locale", "en-us"),
             source_category=data.get("source_category"),
             canonical_url=data.get("canonical_url"),

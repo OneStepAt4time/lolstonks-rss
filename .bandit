@@ -3,10 +3,15 @@ exclude_dirs:
   - '/tests'
   - '/test'
 
-# Skips for worktree_manager.py and safe SQL patterns
+# Skips for worktree_manager.py subprocess calls and safe SQL patterns
+# B101: assert used (intentional for type narrowing in circuit_breaker.py)
+# B404: import subprocess (worktree_manager.py uses subprocess for git operations)
+# B607: start process with partial path (git is in PATH, intentional)
+# B603: subprocess without shell equals true (using list form, safe from shell injection)
+# B608: hardcoded SQL - safe when using parameterized queries with ? placeholders
 skips:
-  - 'B101'  # assert used
-  - 'B404'  # import subprocess
-  - 'B607'  # start process with partial path
-  - 'B603'  # subprocess without shell equals true
-  - 'B608'  # hardcoded SQL - safe when using parameterized queries with ? placeholders
+  - 'B101'
+  - 'B404'
+  - 'B607'
+  - 'B603'
+  - 'B608'

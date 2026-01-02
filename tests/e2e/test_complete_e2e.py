@@ -33,9 +33,11 @@ def sample_articles():
             url=f"https://example.com/article-{i}",
             pub_date=base_date - timedelta(hours=i),
             guid=f"test-guid-{i}",
-            source=ArticleSource.create("lol", "en-us")
-            if i % 2 == 0
-            else ArticleSource.create("lol", "it-it"),
+            source=(
+                ArticleSource.create("lol", "en-us")
+                if i % 2 == 0
+                else ArticleSource.create("lol", "it-it")
+            ),
             description=f"Test description {i}",
             categories=["News", "Test"] if i % 2 == 0 else ["Patch Notes"],
         )

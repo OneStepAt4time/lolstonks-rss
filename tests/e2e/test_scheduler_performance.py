@@ -3,6 +3,7 @@
 This module tests scheduler performance metrics including update duration,
 memory usage, and throughput.
 """
+
 import asyncio
 import os
 import time

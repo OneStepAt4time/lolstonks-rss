@@ -4,6 +4,7 @@ Test scheduler integration with API application.
 This module tests the scheduler integration with the FastAPI application
 including lifespan management and endpoint availability.
 """
+
 import asyncio
 
 import pytest

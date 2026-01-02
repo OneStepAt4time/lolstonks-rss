@@ -5,7 +5,6 @@ This module tests Settings class including worktree mode configuration,
 field validators, and property methods.
 """
 
-
 import pytest
 
 from src.config import Settings, get_settings

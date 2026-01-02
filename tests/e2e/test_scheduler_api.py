@@ -4,6 +4,7 @@ Test scheduler HTTP endpoints.
 This module tests the HTTP API endpoints for scheduler management
 including status checks and manual trigger functionality.
 """
+
 import asyncio
 
 import httpx
