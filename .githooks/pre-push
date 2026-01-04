@@ -25,32 +25,16 @@ print_info() {
 }
 
 # Get current branch
-CURRENT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || echo "detached")
+CURRENT_BRANCH=$(git symbolic-ref --short HEAD)
 print_info "Current branch: $CURRENT_BRANCH"
 
-# Read stdin to see what's being pushed
-# Format: <local_ref> <local_sha> <remote_ref> <remote_sha>
-while read local_ref local_sha remote_ref remote_sha; do
-    # Check if pushing a tag (refs/tags/)
-    case "$remote_ref" in
-        refs/tags/*)
-            # Allow tag operations on master/main
-            print_info "Pushing tag: $remote_ref"
-            print_success "Tag operations allowed on master"
-            exit 0
-            ;;
-    esac
-
-    # Check if pushing to main/master (code, not tags)
-    case "$remote_ref" in
-        refs/heads/main|refs/heads/master)
-            print_error "Direct code push to $remote_ref is not allowed"
-            print_info "Please create a pull request instead"
-            print_info "If you need to push to $CURRENT_BRANCH, use: git push --no-verify"
-            exit 1
-            ;;
-    esac
-done
+# Prevent pushing directly to main/master
+if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
+    print_error "Direct push to $CURRENT_BRANCH is not allowed"
+    print_info "Please create a pull request instead"
+    print_info "If you need to push to $CURRENT_BRANCH, use: git push --no-verify"
+    exit 1
+fi
 
 # Check UV is available
 if ! command -v uv > /dev/null 2>&1; then
@@ -82,11 +66,14 @@ if ! uv run mypy src/; then
 fi
 print_success "Mypy type checking passed"
 
-# 2. Run full test suite (including slow tests and server-dependent tests)
-# Note: To achieve 90% coverage, we run all tests including slow/network tests.
-# This will take longer (8+ minutes) but ensures comprehensive coverage.
-print_info "Running full test suite (all tests for 90% coverage)..."
-if ! uv run pytest -v --cov=src --cov-report=term --cov-report=html; then
+# 2. Run test suite (excluding tests that require external server)
+# Note: E2E tests requiring running server (test_http_endpoints, test_rss_compliance, test_scheduler_api)
+# are run in CI/CD with server infrastructure. Pre-push runs unit/integration tests only.
+print_info "Running test suite (unit + integration + offline E2E)..."
+if ! uv run pytest -v --cov=src --cov-report=term --cov-report=html \
+    --ignore=tests/e2e/test_http_endpoints.py \
+    --ignore=tests/e2e/test_rss_compliance.py \
+    --ignore=tests/e2e/test_scheduler_api.py; then
     print_error "Tests failed"
     exit 1
 fi
@@ -94,7 +81,10 @@ print_success "All tests passed"
 
 # 3. Check test coverage
 print_info "Checking test coverage..."
-COVERAGE=$(uv run pytest --cov=src --cov-report=term | grep "TOTAL" | awk '{print $4}' | sed 's/%//')
+COVERAGE=$(uv run pytest --cov=src --cov-report=term \
+    --ignore=tests/e2e/test_http_endpoints.py \
+    --ignore=tests/e2e/test_rss_compliance.py \
+    --ignore=tests/e2e/test_scheduler_api.py | grep "TOTAL" | awk '{print $4}' | sed 's/%//')
 if [ -n "$COVERAGE" ]; then
     COVERAGE_INT=${COVERAGE%.*}
     if [ "$COVERAGE_INT" -lt 90 ]; then
