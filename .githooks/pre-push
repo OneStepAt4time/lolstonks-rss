@@ -25,16 +25,32 @@ print_info() {
 }
 
 # Get current branch
-CURRENT_BRANCH=$(git symbolic-ref --short HEAD)
+CURRENT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || echo "detached")
 print_info "Current branch: $CURRENT_BRANCH"
 
-# Prevent pushing directly to main/master
-if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
-    print_error "Direct push to $CURRENT_BRANCH is not allowed"
-    print_info "Please create a pull request instead"
-    print_info "If you need to push to $CURRENT_BRANCH, use: git push --no-verify"
-    exit 1
-fi
+# Read stdin to see what's being pushed
+# Format: <local_ref> <local_sha> <remote_ref> <remote_sha>
+while read local_ref local_sha remote_ref remote_sha; do
+    # Check if pushing a tag (refs/tags/)
+    case "$remote_ref" in
+        refs/tags/*)
+            # Allow tag operations on master/main
+            print_info "Pushing tag: $remote_ref"
+            print_success "Tag operations allowed on master"
+            exit 0
+            ;;
+    esac
+
+    # Check if pushing to main/master (code, not tags)
+    case "$remote_ref" in
+        refs/heads/main|refs/heads/master)
+            print_error "Direct code push to $remote_ref is not allowed"
+            print_info "Please create a pull request instead"
+            print_info "If you need to push to $CURRENT_BRANCH, use: git push --no-verify"
+            exit 1
+            ;;
+    esac
+done
 
 # Check UV is available
 if ! command -v uv > /dev/null 2>&1; then

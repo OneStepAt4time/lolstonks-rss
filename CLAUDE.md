@@ -6,16 +6,34 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **NEVER PUSH DIRECTLY TO MASTER/MAIN BRANCH**
 
-This repository follows strict GitHub Flow. **ALL code changes MUST**:
+This repository follows strict **GitFlow with develop branch**. **ALL code changes MUST follow this process**:
 
-1. ✅ **Create a feature branch** (feature/, fix/, docs/, etc.)
-2. ✅ **Make changes on the branch**
+### 🔄 Complete GitFlow Workflow
+
+#### Phase 1: Feature Development (feature/* → develop)
+
+1. ✅ **Create feature branch** from develop
+2. ✅ **Make changes on the feature branch**
 3. ✅ **Commit following Conventional Commits**
-4. ✅ **Push the feature branch** (NOT master)
-5. ✅ **Create a Pull Request**
+4. ✅ **Push the feature branch**
+5. ✅ **Create Pull Request to develop** (NOT master!)
 6. ✅ **Wait for CI/CD checks to pass**
 7. ✅ **Get approval from maintainer**
-8. ✅ **Merge via GitHub PR interface**
+8. ✅ **Merge to develop via GitHub PR**
+
+#### Phase 2: Quality Assurance on develop
+
+9. ✅ **Verify all CI/CD Actions pass on develop**
+10. ⚠️ **If Actions fail**: create fix/* branches
+11. ✅ **Create PR from fix/* to develop**
+12. ✅ **Merge fixes to develop**
+13. ✅ **Re-verify CI/CD Actions pass**
+
+#### Phase 3: Production Release (develop → master)
+
+14. ✅ **When all Actions pass on develop**: Create PR to master
+15. ✅ **Merge PR from develop to master**
+16. ✅ **Generate release tag** on master
 
 **VIOLATION OF GITFLOW IS UNACCEPTABLE**
 
@@ -182,14 +200,138 @@ rm -rf tmp/*.md
 
 ## 📋 GITFLOW: Detailed Workflow (MANDATORY)
 
-### Step-by-Step Process
+### 🎯 GitFlow Branch Strategy
+
+This project uses **GitFlow with develop as integration branch**:
+
+- **master**: Production-ready code only (stable releases)
+- **develop**: Integration branch for all features
+- **feature/***: New features (branch from develop)
+- **fix/***: Bug fixes (branch from develop)
+- **hotfix/***: Emergency production fixes (branch from master)
+
+### 🔄 Complete Development Lifecycle
+
+#### Phase 1: Feature Development
+
+**1. Start from develop (NOT master)**
+
+```bash
+# Ensure develop is up to date
+git checkout develop
+git pull origin develop
+
+# Create feature branch from develop
+git checkout -b feature/your-feature-name
+
+# Verify starting point
+git log --oneline -1  # Should show develop's latest commit
+```
+
+**2. Make Changes and Commit**
+
+```bash
+# Work on your feature
+# ... make changes ...
+
+# Commit with Conventional Commits
+git add .
+git commit -m "feat(scope): description"
+```
+
+**3. Push and Create PR to develop**
+
+```bash
+# Push feature branch
+git push -u origin feature/your-feature-name
+
+# Create PR to develop (NOT master!)
+gh pr create --base develop --title "feat: Your feature" --body "Description..."
+```
+
+**4. Verify CI/CD Actions**
+
+When PR is created, GitHub Actions will run:
+- ✅ Unit tests
+- ✅ Integration tests
+- ✅ Code coverage ≥90%
+- ✅ Black formatting
+- ✅ Ruff linting
+- ✅ Mypy type checking
+- ✅ Docker build
+
+**5. Merge to develop**
+
+If ALL Actions pass:
+- Get approval
+- Merge PR to develop (via GitHub)
+- Delete feature branch
+
+#### Phase 2: Fix Issues on develop
+
+**If Actions FAIL on develop:**
+
+```bash
+# Create fix branch from develop
+git checkout develop
+git pull origin develop
+git checkout -b fix/issue-description
+
+# Make fixes
+# ... fix issues ...
+
+# Commit and push
+git add .
+git commit -m "fix(scope): description"
+git push -u origin fix/issue-description
+
+# Create PR to develop
+gh pr create --base develop --title "fix: Issue description"
+
+# Merge to develop when Actions pass
+```
+
+#### Phase 3: Release to master (ONLY when develop is stable)
+
+**Preconditions for PR to master:**
+- ✅ All feature branches merged to develop
+- ✅ All fix branches merged to develop
+- ✅ ALL CI/CD Actions passing on develop
+- ✅ No failing tests
+- ✅ Coverage ≥90%
+
+**When preconditions met:**
+
+```bash
+# Create PR from develop to master
+gh pr create --base master --head develop --title "Release vX.X.X: Description"
+
+# Get final approval
+# Merge PR to master
+```
+
+#### Phase 4: Tag Release
+
+```bash
+# Switch to master
+git checkout master
+git pull origin master
+
+# Create annotated tag
+git tag -a vX.X.X -m "Release vX.X.X: Description"
+
+# Push tag (triggers release workflow)
+git push origin vX.X.X
+```
+
+### Step-by-Step Summary
 
 #### 1. Before Starting ANY Work
 
 ```bash
-# Ensure you're on master and it's up to date
-git checkout master
-git pull origin master
+# Ensure you're on develop and it's up to date
+git checkout develop
+git pull origin develop
 
 # Verify no uncommitted changes
 git status  # Should show "working tree clean"
@@ -271,26 +413,36 @@ git push origin feature/your-feature-name
 git push -u origin feature/your-feature-name
 ```
 
-**⚠️ NEVER** do:
+**⚠️ CRITICAL RULES**:
+
 ```bash
-git push origin master        # ❌ FORBIDDEN
-git push origin main          # ❌ FORBIDDEN
-git push --no-verify          # ❌ ONLY for emergencies with user approval
+# ✅ CORRECT
+git push origin feature/your-feature    # Feature branch to remote
+gh pr create --base develop              # PR to develop
+
+# ❌ FORBIDDEN
+git push origin master                   # NEVER push directly to master
+git push origin main                     # NEVER push directly to main
+gh pr create --base master               # PR to master ONLY from develop!
+git push --no-verify                     # NEVER bypass hooks without approval
 ```
 
-#### 5. Create Pull Request
+#### 5. Create Pull Request to develop
+
+**IMPORTANT: Base branch is develop, NOT master!**
 
 **Using GitHub CLI** (recommended):
 ```bash
-gh pr create --title "feat: Add GitHub Pages auto-sync" --body "Description..."
+gh pr create --base develop --title "feat: Add feature" --body "Description..."
 ```
 
 **Using GitHub Web**:
 1. Go to: https://github.com/OneStepAt4time/lolstonksrss/pulls
 2. Click "New pull request"
-3. Select your feature branch
-4. Fill in PR template
-5. Create PR
+3. Base: **develop** (NOT master!)
+4. Compare: your feature branch
+5. Fill in PR template
+6. Create PR
 
 **PR Must Include**:
 - Clear description of changes
@@ -416,16 +568,32 @@ Before ANY code push, verify:
 1. **DO NOT PANIC**
 2. Inform user immediately
 3. Options:
-   - **Revert commit**: `git revert HEAD && git push`
-   - **Force reset** (requires coordination): `git reset --hard HEAD~1 && git push --force`
-   - **Leave and document**: Add to technical debt log
+   - **Revert commit**: `git revert HEAD && git push --no-verify` (with approval)
+   - **Leave and document**: Document the violation in incident log
+
+### If You Create PR to Master Instead of develop
+
+**Immediate Actions**:
+1. **DO NOT MERGE**
+2. Close the incorrect PR
+3. Create new PR to develop
+4. Inform user of the mistake
 
 ### If You Use `--no-verify` Inappropriately
 
-1. Acknowledge the violation
-2. Explain to user what happened
-3. Create follow-up PR to fix any issues
-4. Document in incident log
+1. **IMMEDIATELY** inform user of the violation
+2. Explain what was bypassed
+3. Do NOT hide the violation
+4. Accept direction on remediation
+
+### If Actions Fail on develop
+
+1. **DO NOT** create PR to master
+2. Create fix/* branch from develop
+3. Fix the issues
+4. Create PR to develop
+5. Verify Actions pass
+6. Only then consider PR to master
 
 ---
 
@@ -441,21 +609,48 @@ Before ANY code push, verify:
 
 **ABSOLUTE RULES** (NEVER break these):
 
-1. **NEVER** push to master/main directly
-2. **NEVER** use `git push --no-verify` without explicit user approval
-3. **ALWAYS** create feature branch before starting work
-4. **ALWAYS** follow Conventional Commits format
-5. **ALWAYS** create PR for code changes
-6. **ALWAYS** wait for CI/CD checks before merging
-7. **ALWAYS** ask user if uncertain about gitflow
+1. **ALWAYS** create feature branches from **develop** (not master)
+2. **NEVER** push directly to master/main
+3. **NEVER** create PR to master from feature branches
+4. **ONLY** create PR to master from develop (when stable)
+5. **ALWAYS** verify CI/CD Actions pass before PR to master
+6. **NEVER** use `git push --no-verify` without explicit user approval
+7. **ALWAYS** follow Conventional Commits format
+8. **ALWAYS** create fix branches when Actions fail on develop
+
+**GitFlow Decision Tree**:
+```
+Starting work?
+├─ Create feature/fix branch FROM develop
+└─ Never from master (unless hotfix)
+
+Ready to merge?
+├─ PR target: develop (for feature/fix branches)
+└─ PR target: master (ONLY from develop, when stable)
+
+Actions failing on develop?
+├─ Create fix/* branch from develop
+├─ Fix the issues
+├─ Create PR to develop
+└─ Repeat until all Actions pass
+
+All Actions passing on develop?
+├─ Create PR from develop to master
+├─ Get approval
+├─ Merge to master
+└─ Create release tag
+```
 
 **Default Response** when asked to commit/push:
 ```
-I've prepared the changes. Following our gitflow:
-1. I'll create a feature branch
+I'll prepare the changes following our GitFlow process:
+
+1. Create feature branch from develop
 2. Commit changes with Conventional Commits format
 3. Push the feature branch
-4. Create a Pull Request
+4. Create Pull Request to develop (NOT master!)
+5. Wait for CI/CD Actions to pass
+6. Only when develop is stable, PR to master
 
 Shall I proceed?
 ```
