@@ -64,6 +64,38 @@
 </rss>
 ```
 
+### Multi-Language Feed Examples
+
+Access RSS feeds in any of the 20 supported languages:
+
+```bash
+# Asian languages
+curl https://your-server.com/rss/ja-jp.xml  # Japanese
+curl https://your-server.com/rss/ko-kr.xml  # Korean
+curl https://your-server.com/rss/zh-cn.xml  # Chinese Simplified
+curl https://your-server.com/rss/zh-tw.xml  # Chinese Traditional
+
+# European languages
+curl https://your-server.com/rss/es-es.xml  # Spanish
+curl https://your-server.com/rss/fr-fr.xml  # French
+curl https://your-server.com/rss/de-de.xml  # German
+curl https://your-server.com/rss/it-it.xml  # Italian
+
+# Other languages
+curl https://your-server.com/rss/ar-ae.xml  # Arabic
+curl https://your-server.com/rss/th-th.xml  # Thai
+curl https://your-server.com/rss/vi-vn.xml  # Vietnamese
+
+# List all available feeds
+curl https://your-server.com/feeds
+```
+
+Each feed includes:
+- Native language title and description
+- UTF-8 encoding for full Unicode support
+- Proper RSS 2.0 compliance
+- Locale-specific content from Riot Games
+
 ---
 
 ## Quick Start

@@ -5,6 +5,57 @@ All notable changes to the LoL Stonks RSS project will be documented in this fil
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - TBD Release Date
+
+### Added - Multi-Language Support (All 20 Riot Locales)
+
+This major release adds complete support for all 20 Riot Games locales with native language feed titles and descriptions.
+
+#### Supported Languages
+- **English**: en-us, en-gb (United States, Great Britain)
+- **Spanish**: es-es, es-mx (Spain, Latin America)
+- **European**: fr-fr, de-de, it-it, pt-br, pl-pl (France, Germany, Italy, Brazil, Poland)
+- **Asian**: ja-jp, ko-kr, zh-cn, zh-tw, vi-vn, th-th, id-id, ph-ph (Japan, Korea, China Simplified/Traditional, Vietnam, Thailand, Indonesia, Philippines)
+- **Other**: ru-ru, tr-tr, ar-ae (Russia, Turkey, UAE)
+
+#### New API Endpoints
+- `GET /rss/{locale}.xml` - Locale-specific RSS feed (20 endpoints)
+- `GET /rss/{locale}/{source}.xml` - Source-filtered locale feed
+- `GET /rss/{locale}/category/{category}.xml` - Category-filtered locale feed
+- `GET /feeds` - Feed discovery endpoint listing all available feeds with metadata
+
+#### Localization Features
+- Native language feed titles for all 20 locales
+- Native language feed descriptions for all 20 locales
+- UTF-8 character encoding for full Unicode support
+- Proper RSS `<language>` attribute mapping per locale
+- Locale-aware content fetching from Riot Games API
+
+#### Documentation
+- Added multi-language usage guide (`docs/MULTI_LANGUAGE_GUIDE.md`)
+- Updated README.md with multi-language feed examples
+- Added locale-specific feed documentation
+
+### Changed
+- Updated RSS feed service to support per-locale generators
+- Enhanced feed discovery endpoint with locale information
+- Improved scheduler to fetch news for all configured locales
+- Updated API documentation with multi-language examples
+
+### Technical Details
+- **Total Locales Supported**: 20 (all Riot Games locales)
+- **Feed Endpoints**: 60+ (20 locale x 3 feed types)
+- **Test Coverage**: 90%+ maintained
+- **Character Encoding**: UTF-8 for all feeds
+- **API Compatibility**: Backward compatible with v1.0.0
+
+### Migration Notes
+- No breaking changes - all v1.x endpoints remain functional
+- Default behavior: all 20 locales enabled
+- Can configure subset of locales via `SUPPORTED_LOCALES` environment variable
+
+---
+
 ## [Unreleased]
 
 ### Added - GitFlow and GitHub Standards Implementation (2025-12-29)
