@@ -1,10 +1,14 @@
 """
 Generate RSS 2.0 feeds for GitHub Pages deployment.
 
-This script fetches articles from the database and generates three RSS feeds:
+This script fetches articles from the database and generates RSS feeds for all
+supported Riot locales. It generates:
 - feed.xml (all articles, all languages)
-- feed/en-us.xml (English articles only)
-- feed/it-it.xml (Italian articles only)
+- feed/{locale}.xml (articles for each of 20 supported locales)
+
+Supported locales (20):
+en-us, en-gb, es-es, es-mx, fr-fr, de-de, it-it, pt-br, ru-ru, tr-tr,
+pl-pl, ja-jp, ko-kr, zh-cn, zh-tw, ar-ae, vi-vn, th-th, id-id, ph-ph
 
 Usage:
     python scripts/generate_rss_feeds.py
@@ -24,7 +28,12 @@ from typing import Final
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.config import get_settings  # noqa: E402
+from src.config import (  # noqa: E402
+    FEED_DESCRIPTIONS,
+    FEED_TITLES,
+    RIOT_LOCALES,
+    get_settings,
+)
 from src.database import ArticleRepository  # noqa: E402
 from src.models import ArticleSource  # noqa: E402
 from src.rss.generator import RSSFeedGenerator  # noqa: E402
@@ -39,62 +48,110 @@ logger: Final[logging.Logger] = logging.getLogger(__name__)
 
 
 # Feed configuration for GitHub Pages
+# Dynamically generated for all supported Riot locales
 # Note: ArticleSource.create() is called at runtime to avoid import-time issues
+
+# Base configuration for the "all" feed
+FEED_CONFIG_ALL: Final[dict] = {
+    "filename": "feed.xml",
+    "title": "League of Legends News",
+    "description": "Latest League of Legends news and updates",
+    "language": "en",
+    "source": None,
+}
+
+# Locale to language code mapping for RSS feeds
+LOCALE_TO_LANG_CODE: Final[dict[str, str]] = {
+    "en-us": "en",
+    "en-gb": "en",
+    "es-es": "es",
+    "es-mx": "es",
+    "fr-fr": "fr",
+    "de-de": "de",
+    "it-it": "it",
+    "pt-br": "pt-BR",
+    "ru-ru": "ru",
+    "tr-tr": "tr",
+    "pl-pl": "pl",
+    "ja-jp": "ja",
+    "ko-kr": "ko",
+    "zh-cn": "zh-CN",
+    "zh-tw": "zh-TW",
+    "ar-ae": "ar",
+    "vi-vn": "vi",
+    "th-th": "th",
+    "id-id": "id",
+    "ph-ph": "tl",  # Filipino language code
+}
+
+# Build feed configurations dynamically for all locales
 FEED_CONFIGS: Final[dict[str, dict]] = {
-    "all": {
-        "filename": "feed.xml",
-        "title": "League of Legends News",
-        "description": "Latest League of Legends news and updates",
-        "language": "en",
-        "source": None,
-    },
-    "en-us": {
-        "filename": "feed/en-us.xml",
-        "title": "League of Legends News",
-        "description": "Latest League of Legends news and updates (English)",
-        "language": "en",
-        "source_id": "lol",
-        "locale": "en-us",
-    },
-    "it-it": {
-        "filename": "feed/it-it.xml",
-        "title": "Notizie League of Legends",
-        "description": "Ultime notizie e aggiornamenti di League of Legends (Italiano)",
-        "language": "it",
-        "source_id": "lol",
-        "locale": "it-it",
+    "all": FEED_CONFIG_ALL,
+    **{
+        locale: {
+            "filename": f"feed/{locale}.xml",
+            "title": FEED_TITLES.get(locale, "League of Legends News"),
+            "description": FEED_DESCRIPTIONS.get(
+                locale, "Latest League of Legends news and updates"
+            ),
+            "language": LOCALE_TO_LANG_CODE.get(locale, "en"),
+            "source_id": "lol",
+            "locale": locale,
+        }
+        for locale in RIOT_LOCALES
     },
 }
 
 
 # GitHub Pages base URL
-GITHUB_PAGES_URL = "https://onestepat4time.github.io/lolstonksrss"
+GITHUB_PAGES_URL = "https://onestepat4time.github.io/lolstonks-rss"
 
 
 def create_feed_generators() -> dict[str, RSSFeedGenerator]:
     """
-    Create RSS feed generators for different languages.
+    Create RSS feed generators for all supported locales.
 
     Returns:
         Dictionary mapping language codes to their generators
     """
     generators = {}
 
-    # English generator
-    generators["en"] = RSSFeedGenerator(
-        feed_title="League of Legends News",
-        feed_link="https://www.leagueoflegends.com/news",
-        feed_description="Latest news and updates from League of Legends",
-        language="en",
-    )
+    # Build locale-specific feed links
+    locale_feed_links: dict[str, str] = {
+        "en-us": "https://www.leagueoflegends.com/news",
+        "en-gb": "https://www.leagueoflegends.com/en-gb/news/",
+        "es-es": "https://www.leagueoflegends.com/es-es/news/",
+        "es-mx": "https://www.leagueoflegends.com/es-mx/news/",
+        "fr-fr": "https://www.leagueoflegends.com/fr-fr/news/",
+        "de-de": "https://www.leagueoflegends.com/de-de/news/",
+        "it-it": "https://www.leagueoflegends.com/it-it/news/",
+        "pt-br": "https://www.leagueoflegends.com/pt-br/news/",
+        "ru-ru": "https://www.leagueoflegends.com/ru-ru/news/",
+        "tr-tr": "https://www.leagueoflegends.com/tr-tr/news/",
+        "pl-pl": "https://www.leagueoflegends.com/pl-pl/news/",
+        "ja-jp": "https://www.leagueoflegends.com/ja-jp/news/",
+        "ko-kr": "https://www.leagueoflegends.com/ko-kr/news/",
+        "zh-cn": "https://www.leagueoflegends.com/zh-cn/news/",
+        "zh-tw": "https://www.leagueoflegends.com/zh-tw/news/",
+        "ar-ae": "https://www.leagueoflegends.com/ar-ae/news/",
+        "vi-vn": "https://www.leagueoflegends.com/vi-vn/news/",
+        "th-th": "https://www.leagueoflegends.com/th-th/news/",
+        "id-id": "https://www.leagueoflegends.com/id-id/news/",
+        "ph-ph": "https://www.leagueoflegends.com/ph-ph/news/",
+    }
 
-    # Italian generator
-    generators["it"] = RSSFeedGenerator(
-        feed_title="Notizie League of Legends",
-        feed_link="https://www.leagueoflegends.com/it-it/news/",
-        feed_description="Ultime notizie e aggiornamenti di League of Legends",
-        language="it",
-    )
+    # Create generator for each locale's language code
+    for locale, feed_link in locale_feed_links.items():
+        lang_code = LOCALE_TO_LANG_CODE.get(locale, "en")
+        if lang_code not in generators:
+            generators[lang_code] = RSSFeedGenerator(
+                feed_title=FEED_TITLES.get(locale, "League of Legends News"),
+                feed_link=feed_link,
+                feed_description=FEED_DESCRIPTIONS.get(
+                    locale, "Latest news and updates from League of Legends"
+                ),
+                language=lang_code,
+            )
 
     return generators
 
@@ -278,9 +335,12 @@ Examples:
     python scripts/generate_rss_feeds.py --output public --limit 200 --base-url https://example.com
 
 Generated feeds:
-  - feed.xml       (all articles, all languages)
-  - feed/en-us.xml (English articles only)
-  - feed/it-it.xml (Italian articles only)
+  - feed.xml        (all articles, all languages)
+  - feed/{locale}.xml (articles for each locale)
+
+Supported locales (20):
+  en-us, en-gb, es-es, es-mx, fr-fr, de-de, it-it, pt-br, ru-ru, tr-tr,
+  pl-pl, ja-jp, ko-kr, zh-cn, zh-tw, ar-ae, vi-vn, th-th, id-id, ph-ph
         """,
     )
 
@@ -389,8 +449,11 @@ def main() -> None:
 
         logger.info("Public URLs:")
         logger.info(f"  - {feed_base_url}/feed.xml")
-        logger.info(f"  - {feed_base_url}/feed/en-us.xml")
-        logger.info(f"  - {feed_base_url}/feed/it-it.xml")
+        logger.info(f"  - {feed_base_url}/feed/{{locale}}.xml")
+        logger.info("")
+        logger.info("  Supported locales: en-us, en-gb, es-es, es-mx, fr-fr, de-de, it-it,")
+        logger.info("                   pt-br, ru-ru, tr-tr, pl-pl, ja-jp, ko-kr, zh-cn,")
+        logger.info("                   zh-tw, ar-ae, vi-vn, th-th, id-id, ph-ph")
 
     except KeyboardInterrupt:
         logger.info("Operation cancelled by user")

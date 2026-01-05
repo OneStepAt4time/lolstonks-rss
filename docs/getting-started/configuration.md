@@ -301,7 +301,7 @@ LOL_NEWS_BASE_URL=https://www.leagueoflegends.com
 
 # Supported locales (comma-separated, no spaces)
 # Available: en-us, it-it, fr-fr, de-de, es-es, ko-kr, ja-jp, etc.
-SUPPORTED_LOCALES=en-us,it-it
+SUPPORTED_LOCALES=en-us,en-gb,es-es,es-mx,fr-fr,de-de,it-it,pt-br,ru-ru,tr-tr,pl-pl,ja-jp,ko-kr,zh-cn,zh-tw,ar-ae,vi-vn,th-th,id-id,ph-ph
 
 # ----------------------------------------------------------------------------
 # Caching Configuration (seconds)
@@ -423,7 +423,7 @@ services:
       - FEED_CACHE_TTL=300
 
       # Locales
-      - SUPPORTED_LOCALES=en-us,it-it
+      - SUPPORTED_LOCALES=en-us,en-gb,es-es,es-mx,fr-fr,de-de,it-it,pt-br,ru-ru,tr-tr,pl-pl,ja-jp,ko-kr,zh-cn,zh-tw,ar-ae,vi-vn,th-th,id-id,ph-ph
 ```
 
 ### Volume Configuration
@@ -531,8 +531,8 @@ FEED_CACHE_TTL=300
 # RSS (reasonable limits)
 RSS_MAX_ITEMS=50
 
-# Locales (add as needed)
-SUPPORTED_LOCALES=en-us,it-it
+# Locales (all 20 Riot locales by default)
+SUPPORTED_LOCALES=en-us,en-gb,es-es,es-mx,fr-fr,de-de,it-it,pt-br,ru-ru,tr-tr,pl-pl,ja-jp,ko-kr,zh-cn,zh-tw,ar-ae,vi-vn,th-th,id-id,ph-ph
 ```
 
 ### Security Considerations

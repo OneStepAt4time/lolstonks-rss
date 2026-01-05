@@ -33,7 +33,7 @@ Hai **3 opzioni** per deployare il backend:
 **Metodo A: Clonare da GitHub (CONSIGLIATO)**
 ```bash
 # Sulla macchina target
-git clone https://github.com/OneStepAt4time/lolstonksrss.git
+git clone https://github.com/OneStepAt4time/lolstonks-rss.git
 cd lolstonksrss
 ```
 
@@ -359,7 +359,7 @@ source $HOME/.cargo/env
 
 ```bash
 # Clone o trasferisci files
-git clone https://github.com/OneStepAt4time/lolstonksrss.git
+git clone https://github.com/OneStepAt4time/lolstonks-rss.git
 cd lolstonksrss
 
 # Installa dipendenze
@@ -726,7 +726,7 @@ environment:
 
 ```bash
 # 1. Clone
-git clone https://github.com/OneStepAt4time/lolstonksrss.git
+git clone https://github.com/OneStepAt4time/lolstonks-rss.git
 cd lolstonksrss
 
 # 2. Start

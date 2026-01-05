@@ -54,7 +54,8 @@ _BROWSER_USER_AGENTS: Final[tuple[str, ...]] = (
 
 # Default RSS aggregator user-agent (identifiable, transparent)
 _RSS_USER_AGENT: Final[str] = (
-    "Mozilla/5.0 (compatible; LoLStonksRSS/1.0; " "+https://github.com/OneStepAt4time/lolstonksrss)"
+    "Mozilla/5.0 (compatible; LoLStonksRSS/1.0; "
+    "+https://github.com/OneStepAt4time/lolstonks-rss)"
 )
 
 

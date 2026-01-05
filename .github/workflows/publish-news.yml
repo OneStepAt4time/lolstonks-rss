@@ -24,11 +24,12 @@ on:
         default: 'manual-trigger'
         type: string
 
-  # Run on push to main for testing
+  # Run on push to main/develop for testing
   push:
     branches:
       - main
       - master
+      - develop
     paths:
       - '.github/workflows/publish-news.yml'
       - 'scripts/generate_news_page.py'

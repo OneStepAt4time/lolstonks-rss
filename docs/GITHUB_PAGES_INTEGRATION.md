@@ -152,13 +152,13 @@ The GitHub Pages auto-sync feature enables your Windows-hosted LoL Stonks RSS ap
 - App reads environment variables:
   - `ENABLE_GITHUB_PAGES_SYNC=true`
   - `GITHUB_TOKEN=ghp_xxxxx`
-  - `GITHUB_REPOSITORY=OneStepAt4time/lolstonksrss`
+  - `GITHUB_REPOSITORY=OneStepAt4time/lolstonks-rss`
 - Validates token exists and feature is enabled
 
 **Step 3: Workflow Dispatch Mechanism**
 - HTTP POST to GitHub API endpoint:
   ```
-  POST https://api.github.com/repos/OneStepAt4time/lolstonksrss/actions/workflows/publish-news.yml/dispatches
+  POST https://api.github.com/repos/OneStepAt4time/lolstonks-rss/actions/workflows/publish-news.yml/dispatches
   ```
 - Headers:
   ```
@@ -213,7 +213,7 @@ Before you start, ensure you have:
 ### Required Access
 
 - **Windows Server** with Docker installed (Windows Server 2019+ or Windows 10/11)
-- **GitHub account** with push access to `OneStepAt4time/lolstonksrss` repository
+- **GitHub account** with push access to `OneStepAt4time/lolstonks-rss` repository
 - **Administrator privileges** on Windows server (for environment variables)
 - **Basic command line knowledge** (PowerShell or Command Prompt)
 
@@ -342,8 +342,8 @@ You have two options for configuration. **Option A (`.env` file)** is recommende
    GITHUB_TOKEN=ghp_yourActualTokenHere
 
    # GitHub repository in format: owner/repo
-   # Default: OneStepAt4time/lolstonksrss
-   GITHUB_REPOSITORY=OneStepAt4time/lolstonksrss
+   # Default: OneStepAt4time/lolstonks-rss
+   GITHUB_REPOSITORY=OneStepAt4time/lolstonks-rss
 
    # Workflow file name (optional, default: publish-news.yml)
    # GITHUB_WORKFLOW_FILE=publish-news.yml
@@ -380,7 +380,7 @@ You have two options for configuration. **Option A (`.env` file)** is recommende
    ```cmd
    setx ENABLE_GITHUB_PAGES_SYNC "true"
    setx GITHUB_TOKEN "ghp_yourActualTokenHere"
-   setx GITHUB_REPOSITORY "OneStepAt4time/lolstonksrss"
+   setx GITHUB_REPOSITORY "OneStepAt4time/lolstonks-rss"
    ```
 
 3. **Verify Variables Set**
@@ -448,7 +448,7 @@ docker run -d `
   -p 8000:8000 `
   -e ENABLE_GITHUB_PAGES_SYNC=true `
   -e GITHUB_TOKEN=ghp_yourToken `
-  -e GITHUB_REPOSITORY=OneStepAt4time/lolstonksrss `
+  -e GITHUB_REPOSITORY=OneStepAt4time/lolstonks-rss `
   -v D:\lolstonksrss\data:/app/data `
   --restart unless-stopped `
   lolstonksrss:latest
@@ -483,7 +483,7 @@ docker logs lolstonksrss 2>&1 | findstr /I "github"
 
 **Success (Feature Enabled):**
 ```
-[INFO] GitHub Pages sync enabled (repository: OneStepAt4time/lolstonksrss)
+[INFO] GitHub Pages sync enabled (repository: OneStepAt4time/lolstonks-rss)
 [INFO] Update complete: 3 new articles
 [INFO] GitHub Pages update triggered (new_articles=3)
 [INFO] GitHub workflow dispatch successful (status=204)
@@ -504,7 +504,7 @@ docker logs lolstonksrss 2>&1 | findstr /I "github"
 #### Verify GitHub Workflow Triggered
 
 1. **Open GitHub Actions Page**
-   - Navigate to: https://github.com/OneStepAt4time/lolstonksrss/actions
+   - Navigate to: https://github.com/OneStepAt4time/lolstonks-rss/actions
    - Or: Repository → Actions tab
 
 2. **Check Recent Workflow Runs**
@@ -541,7 +541,7 @@ curl http://localhost:8000/health
 |----------|----------|---------|-------------|
 | `ENABLE_GITHUB_PAGES_SYNC` | No | `false` | Enable/disable auto-sync feature |
 | `GITHUB_TOKEN` | Yes* | - | GitHub Personal Access Token (starts with `ghp_`) |
-| `GITHUB_REPOSITORY` | No | `OneStepAt4time/lolstonksrss` | Target repository in `owner/repo` format |
+| `GITHUB_REPOSITORY` | No | `OneStepAt4time/lolstonks-rss` | Target repository in `owner/repo` format |
 | `GITHUB_WORKFLOW_FILE` | No | `publish-news.yml` | Workflow filename to trigger |
 
 *Required only if `ENABLE_GITHUB_PAGES_SYNC=true`
@@ -563,12 +563,12 @@ The Personal Access Token must have these permissions:
 # Minimal configuration (recommended)
 ENABLE_GITHUB_PAGES_SYNC=true
 GITHUB_TOKEN=ghp_abcd1234efgh5678ijkl9012mnop3456qrst7890
-GITHUB_REPOSITORY=OneStepAt4time/lolstonksrss
+GITHUB_REPOSITORY=OneStepAt4time/lolstonks-rss
 
 # Full configuration (with all options)
 ENABLE_GITHUB_PAGES_SYNC=true
 GITHUB_TOKEN=ghp_abcd1234efgh5678ijkl9012mnop3456qrst7890
-GITHUB_REPOSITORY=OneStepAt4time/lolstonksrss
+GITHUB_REPOSITORY=OneStepAt4time/lolstonks-rss
 GITHUB_WORKFLOW_FILE=publish-news.yml
 ```
 
@@ -590,7 +590,7 @@ services:
       # GitHub Pages Integration
       - ENABLE_GITHUB_PAGES_SYNC=${ENABLE_GITHUB_PAGES_SYNC:-false}
       - GITHUB_TOKEN=${GITHUB_TOKEN}
-      - GITHUB_REPOSITORY=${GITHUB_REPOSITORY:-OneStepAt4time/lolstonksrss}
+      - GITHUB_REPOSITORY=${GITHUB_REPOSITORY:-OneStepAt4time/lolstonks-rss}
     restart: unless-stopped
 ```
 
@@ -701,7 +701,7 @@ X-RateLimit-Reset: 1735555200
    ```
    ENABLE_GITHUB_PAGES_SYNC=true
    GITHUB_TOKEN=ghp_xxxxx
-   GITHUB_REPOSITORY=OneStepAt4time/lolstonksrss
+   GITHUB_REPOSITORY=OneStepAt4time/lolstonks-rss
    ```
 
 3. **Restart container with --env-file:**
@@ -787,19 +787,19 @@ X-RateLimit-Reset: 1735555200
    Check `resources.core.remaining` value.
 
 2. **Verify repository access:**
-   - Open: https://github.com/OneStepAt4time/lolstonksrss
+   - Open: https://github.com/OneStepAt4time/lolstonks-rss
    - Ensure you have push/admin access to repository
    - Token must belong to user with repository access
 
 3. **Check repository name format:**
    ```env
    # WRONG formats:
-   GITHUB_REPOSITORY=https://github.com/OneStepAt4time/lolstonksrss
-   GITHUB_REPOSITORY=OneStepAt4time/lolstonksrss.git
+   GITHUB_REPOSITORY=https://github.com/OneStepAt4time/lolstonks-rss
+   GITHUB_REPOSITORY=OneStepAt4time/lolstonks-rss.git
    GITHUB_REPOSITORY=OneStepAt4time\lolstonksrss
 
    # CORRECT format:
-   GITHUB_REPOSITORY=OneStepAt4time/lolstonksrss
+   GITHUB_REPOSITORY=OneStepAt4time/lolstonks-rss
    ```
 
 4. **Wait for rate limit reset:**
@@ -823,13 +823,13 @@ X-RateLimit-Reset: 1735555200
 **Solutions:**
 
 1. **Verify workflow file exists:**
-   - Open: https://github.com/OneStepAt4time/lolstonksrss/blob/main/.github/workflows/publish-news.yml
+   - Open: https://github.com/OneStepAt4time/lolstonks-rss/blob/main/.github/workflows/publish-news.yml
    - File should exist at this path
 
 2. **Check repository name:**
    ```powershell
    # Should match exactly:
-   GITHUB_REPOSITORY=OneStepAt4time/lolstonksrss
+   GITHUB_REPOSITORY=OneStepAt4time/lolstonks-rss
    ```
 
 3. **Verify workflow filename:**
@@ -843,7 +843,7 @@ X-RateLimit-Reset: 1735555200
 
 4. **Clone fresh copy to verify:**
    ```powershell
-   git clone https://github.com/OneStepAt4time/lolstonksrss.git temp-verify
+   git clone https://github.com/OneStepAt4time/lolstonks-rss.git temp-verify
    dir temp-verify\.github\workflows\publish-news.yml
    ```
 
@@ -862,12 +862,12 @@ X-RateLimit-Reset: 1735555200
 **Solutions:**
 
 1. **Check workflow logs:**
-   - Go to: https://github.com/OneStepAt4time/lolstonksrss/actions
+   - Go to: https://github.com/OneStepAt4time/lolstonks-rss/actions
    - Click on latest workflow run
    - Check "Deploy to GitHub Pages" step for errors
 
 2. **Verify GitHub Pages enabled:**
-   - Go to: https://github.com/OneStepAt4time/lolstonksrss/settings/pages
+   - Go to: https://github.com/OneStepAt4time/lolstonks-rss/settings/pages
    - Source should be: "GitHub Actions"
    - URL should be: `https://OneStepAt4time.github.io/lolstonksrss/`
 
@@ -882,7 +882,7 @@ X-RateLimit-Reset: 1735555200
    - Check workflow completion time vs your refresh time
 
 5. **Check workflow permissions:**
-   - Go to: https://github.com/OneStepAt4time/lolstonksrss/settings/actions
+   - Go to: https://github.com/OneStepAt4time/lolstonks-rss/settings/actions
    - Scroll to "Workflow permissions"
    - Should be: "Read and write permissions" ✅
 
@@ -904,7 +904,7 @@ X-RateLimit-Reset: 1735555200
    - Look for "Actions" or "Pages" incidents
 
 2. **Review workflow run times:**
-   - Go to: https://github.com/OneStepAt4time/lolstonksrss/actions
+   - Go to: https://github.com/OneStepAt4time/lolstonks-rss/actions
    - Check "Duration" column
    - Normal: 2-3 minutes
    - Slow: 5+ minutes (GitHub congestion)
@@ -1065,7 +1065,7 @@ netsh advfirewall firewall add rule name="LoL RSS - Allow Trusted IPs" dir=in ac
    # Ensure these lines exist:
    ENABLE_GITHUB_PAGES_SYNC=true
    GITHUB_TOKEN=ghp_yourToken
-   GITHUB_REPOSITORY=OneStepAt4time/lolstonksrss
+   GITHUB_REPOSITORY=OneStepAt4time/lolstonks-rss
    ```
 
 2. **Restart container:**
@@ -1078,7 +1078,7 @@ netsh advfirewall firewall add rule name="LoL RSS - Allow Trusted IPs" dir=in ac
    docker logs lolstonksrss --tail 50
 
    # Look for:
-   [INFO] GitHub Pages sync enabled (repository: OneStepAt4time/lolstonksrss)
+   [INFO] GitHub Pages sync enabled (repository: OneStepAt4time/lolstonks-rss)
    ```
 
 4. **Wait for next scheduled update:**
@@ -1097,7 +1097,7 @@ netsh advfirewall firewall add rule name="LoL RSS - Allow Trusted IPs" dir=in ac
    ```
 
 6. **Verify workflow triggered on GitHub:**
-   - Open: https://github.com/OneStepAt4time/lolstonksrss/actions
+   - Open: https://github.com/OneStepAt4time/lolstonks-rss/actions
    - Check latest "Publish News to GitHub Pages" run
    - Status should be: "In progress" or "Success" ✅
    - Triggered by: "windows-app"
@@ -1232,7 +1232,7 @@ from datetime import datetime
 
 # Configuration
 TOKEN = os.getenv("GITHUB_TOKEN", "")
-REPO = os.getenv("GITHUB_REPOSITORY", "OneStepAt4time/lolstonksrss")
+REPO = os.getenv("GITHUB_REPOSITORY", "OneStepAt4time/lolstonks-rss")
 WORKFLOW_FILE = "publish-news.yml"
 
 def test_api_connection():
@@ -1543,7 +1543,7 @@ GITHUB_REPOSITORY=YourUsername/private-repo-name
 **A:** Three testing approaches:
 
 **Option 1: Manual Workflow Trigger (GitHub UI)**
-1. Go to: https://github.com/OneStepAt4time/lolstonksrss/actions
+1. Go to: https://github.com/OneStepAt4time/lolstonks-rss/actions
 2. Click "Publish News to GitHub Pages" workflow
 3. Click "Run workflow" button
 4. Fill in: `triggered_by` = "manual-test"
@@ -1741,7 +1741,7 @@ notepad .env
 # Delete or comment out lines:
 # ENABLE_GITHUB_PAGES_SYNC=true
 # GITHUB_TOKEN=ghp_xxxxx
-# GITHUB_REPOSITORY=OneStepAt4time/lolstonksrss
+# GITHUB_REPOSITORY=OneStepAt4time/lolstonks-rss
 
 # Save and close
 ```
@@ -1793,7 +1793,7 @@ The GitHub Actions cron schedule runs independently:
 1. **Wait for next cron trigger** (max 5 minutes)
 
 2. **Check GitHub Actions:**
-   - https://github.com/OneStepAt4time/lolstonksrss/actions
+   - https://github.com/OneStepAt4time/lolstonks-rss/actions
    - Latest run should show: "Triggered by: schedule" (not "windows-app")
 
 3. **Verify Pages Updated:**
@@ -1833,8 +1833,8 @@ To re-enable the feature:
 - **Main README:** `README.md`
 
 **Community:**
-- **GitHub Issues:** https://github.com/OneStepAt4time/lolstonksrss/issues
-- **GitHub Discussions:** https://github.com/OneStepAt4time/lolstonksrss/discussions
+- **GitHub Issues:** https://github.com/OneStepAt4time/lolstonks-rss/issues
+- **GitHub Discussions:** https://github.com/OneStepAt4time/lolstonks-rss/discussions
 - **GitHub Actions Status:** https://www.githubstatus.com/
 
 ### Reporting Issues
@@ -1847,7 +1847,7 @@ When reporting problems with GitHub Pages integration:
    ```
    - Windows version: (e.g., Windows Server 2019)
    - Docker version: (run: docker --version)
-   - Repository: OneStepAt4time/lolstonksrss
+   - Repository: OneStepAt4time/lolstonks-rss
    - Feature enabled: true/false
    ```
 
@@ -1856,7 +1856,7 @@ When reporting problems with GitHub Pages integration:
    # From .env file (REMOVE ACTUAL TOKEN):
    ENABLE_GITHUB_PAGES_SYNC=true
    GITHUB_TOKEN=ghp_xxxxx... (REDACTED)
-   GITHUB_REPOSITORY=OneStepAt4time/lolstonksrss
+   GITHUB_REPOSITORY=OneStepAt4time/lolstonks-rss
    ```
 
 3. **Error logs:**
@@ -1866,7 +1866,7 @@ When reporting problems with GitHub Pages integration:
    ```
 
 4. **GitHub workflow status:**
-   - Latest workflow run URL from: https://github.com/OneStepAt4time/lolstonksrss/actions
+   - Latest workflow run URL from: https://github.com/OneStepAt4time/lolstonks-rss/actions
    - Workflow status: In progress / Failed / Success
    - Error message from workflow logs (if failed)
 
@@ -1896,7 +1896,7 @@ When reporting problems with GitHub Pages integration:
 Have an idea to improve the GitHub Pages integration?
 
 1. Check existing issues/discussions first
-2. Open a new discussion: https://github.com/OneStepAt4time/lolstonksrss/discussions
+2. Open a new discussion: https://github.com/OneStepAt4time/lolstonks-rss/discussions
 3. Describe your use case and expected benefit
 4. Tag with "enhancement" label
 

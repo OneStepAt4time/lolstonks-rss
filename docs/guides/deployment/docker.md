@@ -81,7 +81,7 @@ environment:
   - BUILD_ID_CACHE_SECONDS=86400
 
   # Locales
-  - SUPPORTED_LOCALES=en-us,it-it
+  - SUPPORTED_LOCALES=en-us,en-gb,es-es,es-mx,fr-fr,de-de,it-it,pt-br,ru-ru,tr-tr,pl-pl,ja-jp,ko-kr,zh-cn,zh-tw,ar-ae,vi-vn,th-th,id-id,ph-ph
 ```
 
 ### Volume Mounts

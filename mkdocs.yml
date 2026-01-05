@@ -1,11 +1,11 @@
 site_name: LoL Stonks RSS
 site_description: Professional RSS feed generator for League of Legends news
 site_author: LoL Stonks RSS Contributors
-site_url: https://OneStepAt4time.github.io/lolstonksrss
+site_url: https://OneStepAt4time.github.io/lolstonks-rss
 
 # Repository
-repo_name: OneStepAt4time/lolstonksrss
-repo_url: https://github.com/OneStepAt4time/lolstonksrss
+repo_name: OneStepAt4time/lolstonks-rss
+repo_url: https://github.com/OneStepAt4time/lolstonks-rss
 edit_uri: edit/main/docs/
 
 # Copyright
@@ -156,7 +156,7 @@ plugins:
         as_creation: date
       categories:
         - tags
-      image: https://raw.githubusercontent.com/OneStepAt4time/lolstonksrss/main/docs/assets/images/logo.svg
+      image: https://raw.githubusercontent.com/OneStepAt4time/lolstonks-rss/main/docs/assets/images/logo.svg
 
 # Markdown Extensions
 markdown_extensions:
@@ -215,17 +215,17 @@ extra_javascript:
 
 # Extra configuration
 extra:
-  homepage: https://OneStepAt4time.github.io/lolstonksrss
+  homepage: https://OneStepAt4time.github.io/lolstonks-rss
 
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/OneStepAt4time/lolstonksrss
+      link: https://github.com/OneStepAt4time/lolstonks-rss
       name: GitHub Repository
     - icon: fontawesome/brands/docker
-      link: https://hub.docker.com/r/OneStepAt4time/lolstonksrss
+      link: https://hub.docker.com/r/OneStepAt4time/lolstonks-rss
       name: Docker Hub
     - icon: fontawesome/brands/python
-      link: https://pypi.org/project/lolstonksrss/
+      link: https://pypi.org/project/lolstonks-rss/
       name: PyPI Package
 
   analytics:
@@ -242,7 +242,7 @@ extra:
           data: 0
           note: >-
             Thanks for your feedback! Help us improve by
-            <a href="https://github.com/OneStepAt4time/lolstonksrss/issues/new?title=[Docs]" target="_blank" rel="noopener">opening an issue</a>.
+            <a href="https://github.com/OneStepAt4time/lolstonks-rss/issues/new?title=[Docs]" target="_blank" rel="noopener">opening an issue</a>.
 
   version:
     provider: mike
