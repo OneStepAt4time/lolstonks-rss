@@ -29,6 +29,32 @@
         body { background-color: #010A13; color: #F0E6D2; }
         .locale-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.5rem; }
         .locale-btn { font-size: 0.75rem; padding: 0.375rem 0.5rem; }
+
+        /* Skeleton loading animation */
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+        .skeleton {
+            background: linear-gradient(90deg, #0A1428 25%, #1E2328 50%, #0A1428 75%);
+            background-size: 1000px 100%;
+            animation: shimmer 2s infinite;
+        }
+
+        /* Bookmark animation */
+        @keyframes bookmarkPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+        .bookmark-pop { animation: bookmarkPop 0.3s ease-out; }
+
+        /* Toast notification */
+        .toast {
+            transform: translateX(100%);
+            transition: transform 0.3s ease-out;
+        }
+        .toast.show { transform: translateX(0); }
     </style>
 </head>
 <body class="min-h-screen font-sans antialiased" x-data="newsApp()">
@@ -43,13 +69,94 @@
                 <span class="font-bold text-xl tracking-tight text-[#C89B3C]">LoL Stonks RSS</span>
             </div>
 
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3">
+                <!-- Search Input -->
+                <div class="relative hidden md:block">
+                    <input
+                        type="text"
+                        x-model="searchQuery"
+                        placeholder="Search articles..."
+                        class="w-64 bg-[#0A1428] border border-[#C89B3C]/20 rounded-lg px-4 py-1.5 text-sm focus:outline-none focus:border-[#C89B3C] transition-colors placeholder-gray-500"
+                    >
+                    <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+
+                <!-- Sort Dropdown -->
+                <div class="relative" x-data="{ open: false }">
+                    <button @click="open = !open" @click.away="open = false" class="flex items-center gap-1 text-sm font-medium hover:text-[#C89B3C] transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"></path></svg>
+                        <span x-text="sortOptions.find(s => s.value === sortBy)?.label || 'Sort'"></span>
+                    </button>
+                    <div x-show="open" x-cloak class="absolute right-0 mt-2 w-48 bg-[#0A1428] border border-[#C89B3C]/20 rounded-lg shadow-xl overflow-hidden" style="display: none;">
+                        <template x-for="option in sortOptions" :key="option.value">
+                            <button
+                                @click="sortBy = option.value; open = false"
+                                :class="{'bg-[#C89B3C]/20 text-[#C89B3C]': sortBy === option.value, 'text-gray-400 hover:text-white': sortBy !== option.value}"
+                                class="w-full px-4 py-2 text-left text-sm transition-colors"
+                                x-text="option.label"
+                            ></button>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Auto-refresh Toggle -->
+                <div class="flex items-center gap-2">
+                    <button
+                        @click="toggleAutoRefresh()"
+                        :class="{'text-[#C89B3C]': autoRefresh, 'text-gray-500 hover:text-gray-300': !autoRefresh}"
+                        class="relative group"
+                        title="Auto-refresh"
+                    >
+                        <svg class="w-5 h-5" :class="{'animate-spin': autoRefresh && refreshing}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        <span x-show="autoRefresh" class="absolute -top-1 -right-1 w-2 h-2 bg-[#C89B3C] rounded-full"></span>
+                    </button>
+                </div>
+
+                <!-- Favorites Filter -->
+                <button
+                    @click="showFavorites = !showFavorites"
+                    :class="{'text-[#C89B3C]': showFavorites, 'text-gray-500 hover:text-gray-300': !showFavorites}"
+                    class="relative"
+                    title="Favorites"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+                    </svg>
+                    <span x-show="bookmarks.length > 0" class="absolute -top-1 -right-1 w-4 h-4 bg-[#C89B3C] text-black text-xs rounded-full flex items-center justify-center font-bold" x-text="bookmarks.length"></span>
+                </button>
+
+                <!-- Refresh Button -->
+                <button
+                    @click="fetchArticles()"
+                    :disabled="refreshing"
+                    class="text-gray-500 hover:text-[#C89B3C] transition-colors disabled:opacity-50"
+                    title="Refresh now"
+                >
+                    <svg class="w-5 h-5" :class="{'animate-spin': refreshing}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                </button>
+
                 <a href="/feed.xml" target="_blank" class="text-sm font-medium hover:text-[#C89B3C] transition-colors flex items-center gap-1">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7m-6 0a1 1 0 11-2 0 1 1 0 012 0z"></path></svg>
-                    RSS Feed
+                    RSS
                 </a>
                 <a href="/docs" target="_blank" class="text-sm font-medium hover:text-[#C89B3C] transition-colors">API</a>
             </div>
+        </div>
+
+        <!-- Mobile Search -->
+        <div class="md:hidden px-4 pb-3">
+            <input
+                type="text"
+                x-model="searchQuery"
+                placeholder="Search articles..."
+                class="w-full bg-[#0A1428] border border-[#C89B3C]/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-[#C89B3C] transition-colors placeholder-gray-500"
+            >
         </div>
     </header>
 
@@ -71,9 +178,10 @@
 
                 <div class="text-sm text-gray-400">
                     Showing <span x-text="filteredArticles.length" class="text-[#C89B3C] font-bold"></span> articles
-                    <span x-show="filter !== 'all'" class="ml-2">
-                        from <span x-text="currentLocale?.name" class="text-[#C89B3C]"></span>
-                    </span>
+                    <span x-show="filter !== 'all'" class="ml-2">from <span x-text="currentLocale?.name" class="text-[#C89B3C]"></span></span>
+                    <span x-show="searchQuery" class="ml-2">matching "<span x-text="searchQuery" class="text-[#C89B3C]"></span>"</span>
+                    <span x-show="showFavorites" class="ml-2">(Favorites only)</span>
+                    <span x-show="lastUpdate" class="ml-2 text-gray-500">· Updated <span x-text="formatRelativeTime(lastUpdate)"></span></span>
                 </div>
             </div>
         </div>
@@ -104,9 +212,51 @@
             </div>
         </div>
 
+        <!-- Share Modal -->
+        <div x-show="showShareModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" style="display: none;">
+            <div @click.away="showShareModal = false" class="bg-[#0A1428] border border-[#C89B3C]/30 rounded-xl max-w-md w-full overflow-hidden">
+                <div class="p-6 border-b border-[#C89B3C]/20">
+                    <h3 class="text-xl font-bold text-[#C89B3C] mb-2">Share Article</h3>
+                    <p class="text-sm text-gray-400 truncate" x-text="shareArticle?.title"></p>
+                </div>
+                <div class="p-6 space-y-4">
+                    <a :href="getTwitterUrl()" target="_blank" class="flex items-center gap-3 p-3 bg-[#1E2328] hover:bg-[#C89B3C]/20 rounded-lg transition-colors">
+                        <svg class="w-6 h-6 text-[#1DA1F2]" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                        <span class="font-medium">Share on Twitter/X</span>
+                    </a>
+                    <a :href="getRedditUrl()" target="_blank" class="flex items-center gap-3 p-3 bg-[#1E2328] hover:bg-[#C89B3C]/20 rounded-lg transition-colors">
+                        <svg class="w-6 h-6 text-[#FF4500]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.674-1.487l.8-3.747-2.597.546a1.25 1.25 0 0 1-2.5-.057c0-.687.562-1.248 1.25-1.248z"/></svg>
+                        <span class="font-medium">Share on Reddit</span>
+                    </a>
+                    <a :href="getDiscordUrl()" class="flex items-center gap-3 p-3 bg-[#1E2328] hover:bg-[#C89B3C]/20 rounded-lg transition-colors cursor-pointer" @click="copyToClipboard()">
+                        <svg class="w-6 h-6 text-[#5865F2]" fill="currentColor" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+                        <span class="font-medium" x-text="copySuccess ? 'Copied!' : 'Copy to Clipboard'"></span>
+                    </a>
+                </div>
+                <div class="p-4 border-t border-[#C89B3C]/20">
+                    <button @click="showShareModal = false" class="w-full px-4 py-2 bg-[#0A1428] text-white rounded-lg text-sm font-medium hover:bg-[#1E2328] transition-colors">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div x-show="toast.show" x-cloak class="fixed bottom-4 right-4 z-50 bg-[#0A1428] border border-[#C89B3C]/30 rounded-lg px-4 py-3 shadow-xl flex items-center gap-3 toast" style="display: none;">
+            <svg class="w-5 h-5 text-[#C89B3C]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            <span x-text="toast.message"></span>
+        </div>
+
         <!-- Loading State -->
-        <div x-show="loading" class="flex justify-center py-20">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C89B3C]"></div>
+        <div x-show="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <template x-for="i in 6">
+                <div class="bg-[#0A1428] border border-[#C89B3C]/10 rounded-xl overflow-hidden">
+                    <div class="aspect-video skeleton"></div>
+                    <div class="p-5 space-y-3">
+                        <div class="h-4 skeleton rounded w-1/3"></div>
+                        <div class="h-6 skeleton rounded w-full"></div>
+                        <div class="h-4 skeleton rounded w-2/3"></div>
+                    </div>
+                </div>
+            </template>
         </div>
 
         <!-- Error State -->
@@ -118,7 +268,18 @@
         <!-- Grid -->
         <div x-show="!loading" x-cloak class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <template x-for="article in filteredArticles" :key="article.guid">
-                <article class="group bg-[#0A1428] border border-[#C89B3C]/10 rounded-xl overflow-hidden hover:border-[#C89B3C]/50 transition-all duration-300 hover:shadow-[0_0_20px_rgba(200,155,60,0.1)] flex flex-col h-full">
+                <article class="group bg-[#0A1428] border border-[#C89B3C]/10 rounded-xl overflow-hidden hover:border-[#C89B3C]/50 transition-all duration-300 hover:shadow-[0_0_20px_rgba(200,155,60,0.1)] flex flex-col h-full relative">
+                    <!-- Bookmark Button -->
+                    <button
+                        @click="toggleBookmark(article.guid)"
+                        class="absolute top-3 left-3 z-10 p-2 rounded-full bg-black/60 backdrop-blur hover:bg-[#C89B3C] transition-colors"
+                        :class="{'text-[#C89B3C]': isBookmarked(article.guid), 'text-white/80 hover:text-black': !isBookmarked(article.guid)}"
+                    >
+                        <svg class="w-4 h-4" :class="{'bookmark-pop': bookmarkAnimation === article.guid}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+                        </svg>
+                    </button>
+
                     <!-- Image -->
                     <div class="aspect-video w-full overflow-hidden bg-gray-800 relative">
                         <template x-if="article.image_url">
@@ -129,7 +290,7 @@
                                 <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                             </div>
                         </template>
-                        <div class="absolute top-2 right-2">
+                        <div class="absolute top-3 right-3">
                             <span class="px-2 py-1 text-xs font-bold rounded bg-black/60 backdrop-blur text-white border border-white/10 uppercase" x-text="article.source.replace('lol-', '').replace('-', '-').replace(/(^|-)(\w)/g, (m, p1, p2) => p2 ? p2.toUpperCase() : '')"></span>
                         </div>
                     </div>
@@ -146,7 +307,13 @@
                         <p class="text-gray-400 text-sm mb-4 line-clamp-3 flex-grow" x-text="article.description || 'No description available.'"></p>
 
                         <div class="mt-auto pt-4 border-t border-white/5 flex justify-between items-center">
-                            <span class="text-xs text-gray-500" x-text="article.author"></span>
+                            <button
+                                @click="openShareModal(article)"
+                                class="inline-flex items-center gap-1 text-sm font-medium text-gray-400 hover:text-[#C89B3C] transition-colors"
+                            >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                                Share
+                            </button>
                             <a :href="article.url" target="_blank" class="inline-flex items-center gap-1 text-sm font-bold text-[#0AC8B9] hover:text-white transition-colors">
                                 Read Article
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
@@ -161,6 +328,7 @@
         <div x-show="!loading && filteredArticles.length === 0" x-cloak class="text-center py-20 text-gray-500">
             <svg class="w-16 h-16 mx-auto mb-4 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
             <p class="text-lg">No articles found.</p>
+            <button x-show="showFavorites || searchQuery || filter !== 'all'" @click="clearAllFilters()" class="mt-4 text-[#C89B3C] hover:underline">Clear all filters</button>
         </div>
 
     </main>
@@ -182,14 +350,37 @@
     </footer>
 
     <script>
+        const BOOKMARKS_KEY = 'lolstonks-bookmarks';
+        const AUTOREFRESH_KEY = 'lolstonks-autorefresh';
+
         function newsApp() {
             return {
                 articles: [],
                 loading: true,
                 error: null,
+                refreshing: false,
                 filter: 'all',
                 showLocaleModal: false,
+                showShareModal: false,
+                showFavorites: false,
                 currentLocale: null,
+                shareArticle: null,
+                searchQuery: '',
+                sortBy: 'newest',
+                autoRefresh: false,
+                lastUpdate: null,
+                bookmarks: [],
+                bookmarkAnimation: null,
+                copySuccess: false,
+                toast: { show: false, message: '' },
+                refreshInterval: null,
+
+                sortOptions: [
+                    { value: 'newest', label: 'Newest First' },
+                    { value: 'oldest', label: 'Oldest First' },
+                    { value: 'popular', label: 'Most Popular' }
+                ],
+
                 locales: [
                     { id: 'lol-en-us', name: 'English (US)' },
                     { id: 'lol-en-gb', name: 'English (UK)' },
@@ -214,23 +405,62 @@
                 ],
 
                 async fetchArticles() {
-                    this.loading = true;
+                    this.refreshing = true;
                     this.error = null;
                     try {
                         const response = await fetch('/api/articles');
                         if (!response.ok) throw new Error('Failed to fetch articles');
                         this.articles = await response.json();
+                        this.lastUpdate = new Date();
                     } catch (e) {
                         this.error = e.message;
                         console.error(e);
                     } finally {
                         this.loading = false;
+                        this.refreshing = false;
                     }
                 },
 
                 get filteredArticles() {
-                    if (this.filter === 'all') return this.articles;
-                    return this.articles.filter(a => a.source === this.filter);
+                    let result = [...this.articles];
+
+                    // Filter by locale
+                    if (this.filter !== 'all') {
+                        result = result.filter(a => a.source === this.filter);
+                    }
+
+                    // Filter by search
+                    if (this.searchQuery) {
+                        const query = this.searchQuery.toLowerCase();
+                        result = result.filter(a =>
+                            a.title?.toLowerCase().includes(query) ||
+                            a.description?.toLowerCase().includes(query)
+                        );
+                    }
+
+                    // Filter by favorites
+                    if (this.showFavorites) {
+                        result = result.filter(a => this.bookmarks.includes(a.guid));
+                    }
+
+                    // Sort
+                    result.sort((a, b) => {
+                        const dateA = new Date(a.pub_date);
+                        const dateB = new Date(b.pub_date);
+
+                        switch (this.sortBy) {
+                            case 'oldest':
+                                return dateA - dateB;
+                            case 'popular':
+                                // For now, sort by recency as a placeholder
+                                return dateB - dateA;
+                            case 'newest':
+                            default:
+                                return dateB - dateA;
+                        }
+                    });
+
+                    return result;
                 },
 
                 selectLocale(localeId) {
@@ -250,7 +480,134 @@
                     }).format(date);
                 },
 
+                formatRelativeTime(date) {
+                    const now = new Date();
+                    const diff = Math.floor((now - date) / 1000);
+
+                    if (diff < 60) return 'just now';
+                    if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+                    if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+                    return Math.floor(diff / 86400) + 'd ago';
+                },
+
+                // Bookmark methods
+                loadBookmarks() {
+                    try {
+                        const saved = localStorage.getItem(BOOKMARKS_KEY);
+                        this.bookmarks = saved ? JSON.parse(saved) : [];
+                    } catch (e) {
+                        console.error('Failed to load bookmarks:', e);
+                        this.bookmarks = [];
+                    }
+                },
+
+                saveBookmarks() {
+                    try {
+                        localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(this.bookmarks));
+                    } catch (e) {
+                        console.error('Failed to save bookmarks:', e);
+                    }
+                },
+
+                toggleBookmark(guid) {
+                    if (this.isBookmarked(guid)) {
+                        this.bookmarks = this.bookmarks.filter(id => id !== guid);
+                        this.showToast('Removed from favorites');
+                    } else {
+                        this.bookmarks.push(guid);
+                        this.bookmarkAnimation = guid;
+                        this.showToast('Added to favorites');
+                        setTimeout(() => this.bookmarkAnimation = null, 300);
+                    }
+                    this.saveBookmarks();
+                },
+
+                isBookmarked(guid) {
+                    return this.bookmarks.includes(guid);
+                },
+
+                // Share methods
+                openShareModal(article) {
+                    this.shareArticle = article;
+                    this.showShareModal = true;
+                    this.copySuccess = false;
+                },
+
+                getTwitterUrl() {
+                    if (!this.shareArticle) return '#';
+                    const text = encodeURIComponent(`${this.shareArticle.title}`);
+                    const url = encodeURIComponent(this.shareArticle.url);
+                    return `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
+                },
+
+                getRedditUrl() {
+                    if (!this.shareArticle) return '#';
+                    const title = encodeURIComponent(this.shareArticle.title);
+                    const url = encodeURIComponent(this.shareArticle.url);
+                    return `https://reddit.com/submit?title=${title}&url=${url}`;
+                },
+
+                getDiscordUrl() {
+                    return '#';
+                },
+
+                copyToClipboard() {
+                    if (!this.shareArticle) return;
+                    navigator.clipboard.writeText(this.shareArticle.url).then(() => {
+                        this.copySuccess = true;
+                        this.showToast('Link copied to clipboard!');
+                        setTimeout(() => this.copySuccess = false, 2000);
+                    });
+                },
+
+                // Auto-refresh
+                toggleAutoRefresh() {
+                    this.autoRefresh = !this.autoRefresh;
+                    localStorage.setItem(AUTOREFRESH_KEY, JSON.stringify(this.autoRefresh));
+
+                    if (this.autoRefresh) {
+                        this.refreshInterval = setInterval(() => {
+                            this.fetchArticles();
+                        }, 5 * 60 * 1000); // 5 minutes
+                        this.showToast('Auto-refresh enabled');
+                    } else {
+                        clearInterval(this.refreshInterval);
+                        this.showToast('Auto-refresh disabled');
+                    }
+                },
+
+                // UI helpers
+                clearAllFilters() {
+                    this.showFavorites = false;
+                    this.searchQuery = '';
+                    this.filter = 'all';
+                    this.currentLocale = null;
+                },
+
+                showToast(message) {
+                    this.toast.message = message;
+                    this.toast.show = true;
+                    setTimeout(() => this.toast.show = false, 3000);
+                },
+
                 init() {
+                    // Load bookmarks from localStorage
+                    this.loadBookmarks();
+
+                    // Load auto-refresh preference
+                    try {
+                        const saved = localStorage.getItem(AUTOREFRESH_KEY);
+                        if (saved === 'true') {
+                            this.autoRefresh = true;
+                            this.refreshInterval = setInterval(() => {
+                                this.fetchArticles();
+                            }, 5 * 60 * 1000);
+                        }
+                    } catch (e) {
+                        console.error('Failed to load auto-refresh preference:', e);
+                    }
+
+                    // Watch for filter changes
                     this.$watch('filter', (value) => {
                         if (value === 'all') {
                             this.currentLocale = null;
@@ -258,7 +615,15 @@
                             this.currentLocale = this.locales.find(l => l.id === value);
                         }
                     });
+
+                    // Initial fetch
                     this.fetchArticles();
+                },
+
+                destroy() {
+                    if (this.refreshInterval) {
+                        clearInterval(this.refreshInterval);
+                    }
                 }
             }
         }
