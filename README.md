@@ -302,7 +302,7 @@ DATABASE_PATH=data/articles.db
 
 # API Configuration
 LOL_NEWS_BASE_URL=https://www.leagueoflegends.com
-SUPPORTED_LOCALES=en-us,it-it
+SUPPORTED_LOCALES=en-us,en-gb,es-es,es-mx,fr-fr,de-de,it-it,pt-br,ru-ru,tr-tr,pl-pl,ja-jp,ko-kr,zh-cn,zh-tw,ar-ae,vi-vn,th-th,id-id,ph-ph
 
 # Caching (in seconds)
 CACHE_TTL_SECONDS=21600           # 6 hours
@@ -1096,7 +1096,7 @@ Thanks to all contributors who have helped improve this project!
 - **Test Coverage**: 92.36%
 - **Total Tests**: 151 (all passing)
 - **Documentation**: 15+ comprehensive guides
-- **Supported Languages**: 2 (EN-US, IT-IT)
+- **Supported Languages**: 20 (All Riot locales)
 - **API Endpoints**: 10+
 - **Docker Image Size**: ~200MB (multi-stage build)
 - **Average Response Time**: <100ms

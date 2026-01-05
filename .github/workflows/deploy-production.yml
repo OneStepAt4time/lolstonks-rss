@@ -232,7 +232,7 @@ jobs:
                -e PORT=8000 \
                -e LOG_LEVEL=INFO \
                -e BASE_URL=http://${{ secrets.WINDOWS_SERVER_HOST }}:8000 \
-               -e SUPPORTED_LOCALES=en-us,it-it \
+               -e SUPPORTED_LOCALES=en-us,en-gb,es-es,es-mx,fr-fr,de-de,it-it,pt-br,ru-ru,tr-tr,pl-pl,ja-jp,ko-kr,zh-cn,zh-tw,ar-ae,vi-vn,th-th,id-id,ph-ph \
                --label 'deployed_at=$(date -u +"%Y-%m-%dT%H:%M:%SZ")' \
                --label 'deployed_by=${{ github.actor }}' \
                --label 'git_sha=${{ github.sha }}' \

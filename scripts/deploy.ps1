@@ -192,7 +192,7 @@ $dockerRunArgs = @(
     "-e", "PORT=8000",
     "-e", "LOG_LEVEL=INFO",
     "-e", "BASE_URL=http://localhost:$TargetPort",
-    "-e", "SUPPORTED_LOCALES=en-us,it-it",
+    "-e", "SUPPORTED_LOCALES=en-us,en-gb,es-es,es-mx,fr-fr,de-de,it-it,pt-br,ru-ru,tr-tr,pl-pl,ja-jp,ko-kr,zh-cn,zh-tw,ar-ae,vi-vn,th-th,id-id,ph-ph",
     "--label", "environment=$Environment",
     "--label", "deployed_at=$(Get-Date -Format 'o')",
     "lolstonksrss:latest"

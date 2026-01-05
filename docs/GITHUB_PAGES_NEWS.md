@@ -9,7 +9,7 @@ The project uses GitHub Actions to:
 2. Generate a beautiful HTML page with LoL branding
 3. Deploy it to GitHub Pages automatically
 
-**Live News Page**: [https://yourusername.github.io/lolstonksrss/](https://yourusername.github.io/lolstonksrss/)
+**Live News Page**: [https://OneStepAt4time.github.io/lolstonksrss/](https://OneStepAt4time.github.io/lolstonksrss/)
 
 ## Features
 
@@ -121,7 +121,7 @@ After modifying the template, the workflow will automatically use the updated ve
    - Push the workflow file to the repository
    - Manually trigger the workflow or push a commit to main
    - Wait for the workflow to complete
-   - Visit `https://yourusername.github.io/lolstonksrss/`
+   - Visit `https://OneStepAt4time.github.io/lolstonksrss/`
 
 ### Custom Domain (Optional)
 
