@@ -104,7 +104,7 @@ class ScrapingConfig:
         """
         return (
             "Mozilla/5.0 (compatible; LoLStonksRSS/1.0; "
-            "+https://github.com/OneStepAt4time/lolstonksrss)"
+            "+https://github.com/OneStepAt4time/lolstonks-rss)"
         )
 
 

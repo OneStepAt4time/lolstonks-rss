@@ -253,7 +253,7 @@ Before approving PRs, verify:
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/OneStepAt4time/lolstonksrss.git
+git clone https://github.com/OneStepAt4time/lolstonks-rss.git
 
 # 2. Setup git hooks
 git config core.hooksPath .githooks

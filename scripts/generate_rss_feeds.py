@@ -68,7 +68,7 @@ FEED_CONFIGS: Final[dict[str, dict]] = {
 
 
 # GitHub Pages base URL
-GITHUB_PAGES_URL = "https://onestepat4time.github.io/lolstonksrss"
+GITHUB_PAGES_URL = "https://onestepat4time.github.io/lolstonks-rss"
 
 
 def create_feed_generators() -> dict[str, RSSFeedGenerator]:

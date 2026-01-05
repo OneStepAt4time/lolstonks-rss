@@ -15,12 +15,12 @@
 [![Coverage](https://img.shields.io/badge/coverage-90%2B-brightgreen.svg)](docs/COVERAGE_REPORT.md)
 [![Tests](https://img.shields.io/badge/tests-638%20passed-brightgreen.svg)](docs/TESTING_SUMMARY.md)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Live News](https://img.shields.io/badge/live-news%20page-gold.svg)](https://OneStepAt4time.github.io/lolstonksrss/)
-[![News Updates](https://img.shields.io/github/actions/workflow/status/OneStepAt4time/lolstonksrss/publish-news.yml?label=news%20updates)](https://github.com/OneStepAt4time/lolstonksrss/actions/workflows/publish-news.yml)
+[![Live News](https://img.shields.io/badge/live-news%20page-gold.svg)](https://OneStepAt4time.github.io/lolstonks-rss/)
+[![News Updates](https://img.shields.io/github/actions/workflow/status/OneStepAt4time/lolstonks-rss/publish-news.yml?label=news%20updates)](https://github.com/OneStepAt4time/lolstonks-rss/actions/workflows/publish-news.yml)
 
 > A production-ready, containerized RSS feed generator for League of Legends news. Automatically fetches official LoL news and generates RSS 2.0 compliant feeds with multi-language support. Designed for Windows Server deployment with Docker.
 
-**[View Live News Page](https://OneStepAt4time.github.io/lolstonksrss/)** - Automatically updated every 5 minutes
+**[View Live News Page](https://OneStepAt4time.github.io/lolstonks-rss/)** - Automatically updated every 5 minutes
 
 ---
 
@@ -104,7 +104,7 @@ Each feed includes:
 
 ```powershell
 # Clone repository
-git clone https://github.com/OneStepAt4time/lolstonksrss.git
+git clone https://github.com/OneStepAt4time/lolstonks-rss.git
 cd lolstonksrss
 
 # Deploy with one command (requires Docker Desktop)
@@ -255,7 +255,7 @@ The application provides feeds for all 20 Riot locales. Each locale fetches ~75 
 
 2. **Clone Repository**
    ```powershell
-   git clone https://github.com/OneStepAt4time/lolstonksrss.git
+   git clone https://github.com/OneStepAt4time/lolstonks-rss.git
    cd lolstonksrss
    ```
 
@@ -268,7 +268,7 @@ The application provides feeds for all 20 Riot locales. Each locale fetches ~75 
 
 1. **Clone Repository**
    ```bash
-   git clone https://github.com/OneStepAt4time/lolstonksrss.git
+   git clone https://github.com/OneStepAt4time/lolstonks-rss.git
    cd lolstonksrss
    ```
 
@@ -592,7 +592,7 @@ Open browser to: http://localhost:8000/docs
 
 ```bash
 # Clone repository
-git clone https://github.com/OneStepAt4time/lolstonksrss.git
+git clone https://github.com/OneStepAt4time/lolstonks-rss.git
 cd lolstonksrss
 
 # Install dependencies with UV (recommended)
@@ -712,7 +712,7 @@ lolstonksrss/
 winget install Docker.DockerDesktop
 
 # 2. Clone repository
-git clone https://github.com/OneStepAt4time/lolstonksrss.git
+git clone https://github.com/OneStepAt4time/lolstonks-rss.git
 cd lolstonksrss
 
 # 3. Configure environment
@@ -1000,8 +1000,8 @@ pytest --cov=src --cov-report=term-missing
 
 ### Getting Help
 
-- **Issues**: [GitHub Issues](https://github.com/OneStepAt4time/lolstonksrss/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/OneStepAt4time/lolstonksrss/discussions)
+- **Issues**: [GitHub Issues](https://github.com/OneStepAt4time/lolstonks-rss/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/OneStepAt4time/lolstonks-rss/discussions)
 - **Documentation**: See [docs/](docs/) directory
 
 ### Reporting Bugs
