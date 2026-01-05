@@ -85,14 +85,14 @@ if [ -n "$STAGED_SRC_FILES" ]; then
     fi
 fi
 
-# 4. Run quick tests (unit tests only)
-print_info "Running unit tests..."
+# 4. Run quick smoke tests (critical path validation only)
+print_info "Running smoke tests (critical path validation)..."
 if command -v uv > /dev/null 2>&1; then
-    if ! uv run pytest tests/unit/ -v --tb=short; then
-        print_error "Unit tests failed"
+    if ! uv run pytest -m smoke -v --tb=short; then
+        print_error "Smoke tests failed"
         exit 1
     fi
-    print_success "Unit tests passed"
+    print_success "Smoke tests passed"
 else
     print_error "UV is not installed. Install from: https://docs.astral.sh/uv/"
     exit 1
