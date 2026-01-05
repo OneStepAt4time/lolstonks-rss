@@ -286,7 +286,7 @@ gh pr create --title "feat: Add GitHub Pages auto-sync" --body "Description..."
 ```
 
 **Using GitHub Web**:
-1. Go to: https://github.com/OneStepAt4time/lolstonksrss/pulls
+1. Go to: https://github.com/OneStepAt4time/lolstonks-rss/pulls
 2. Click "New pull request"
 3. Select your feature branch
 4. Fill in PR template

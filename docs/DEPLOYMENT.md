@@ -406,7 +406,7 @@ docker login ghcr.io
 # Use GitHub PAT with `read:packages` scope
 
 # Check image exists
-# Visit: https://github.com/OneStepAt4time/lolstonksrss/pkgs/container/lolstonksrss
+# Visit: https://github.com/OneStepAt4time/lolstonks-rss/pkgs/container/lolstonksrss
 ```
 
 #### 3. Container Won't Start
