@@ -163,10 +163,10 @@ python -m uvicorn src.api.app:app --reload
 ```bash
 # Update your fork
 git fetch upstream
-git checkout main
-git merge upstream/main
+git checkout develop
+git merge upstream/develop
 
-# Create feature branch
+# Create feature branch from develop
 git checkout -b feature/your-feature-name
 
 # Or for bug fixes
@@ -615,6 +615,104 @@ class RSSGenerator:
 
 ## Pull Request Process
 
+### ⚠️ GitFlow Workflow (MANDATORY)
+
+This project follows **strict GitFlow** with `develop` as the integration branch.
+
+#### Feature Development Workflow
+
+**1. Start from develop (NOT master)**
+
+```bash
+# Ensure develop is up to date
+git checkout develop
+git pull origin develop
+
+# Create feature branch from develop
+git checkout -b feature/your-feature-name
+
+# Verify starting point
+git log --oneline -1  # Should show develop's latest commit
+```
+
+**2. Make Changes and Commit**
+
+```bash
+# Work on your feature
+# ... make changes ...
+
+# Commit with Conventional Commits
+git add .
+git commit -m "feat(scope): description"
+```
+
+**3. Push and Create PR to develop (NOT master!)**
+
+```bash
+# Push feature branch
+git push -u origin feature/your-feature-name
+
+# Create PR to develop (NOT master!)
+gh pr create --base develop --title "feat: Your feature" --body "Description..."
+```
+
+**4. Verify CI/CD Actions**
+
+When PR is created, GitHub Actions will run:
+- ✅ Unit tests
+- ✅ Integration tests
+- ✅ Code coverage ≥90%
+- ✅ Black formatting
+- ✅ Ruff linting
+- ✅ Mypy type checking
+- ✅ Docker build
+
+**5. Merge to develop**
+
+If ALL Actions pass:
+- Get approval
+- Merge PR to develop (via GitHub)
+- Delete feature branch
+
+**6. When develop is stable, PR to master**
+
+**Preconditions for PR to master:**
+- ✅ All feature branches merged to develop
+- ✅ All fix branches merged to develop
+- ✅ ALL CI/CD Actions passing on develop
+- ✅ No failing tests
+- ✅ Coverage ≥90%
+
+**When preconditions met:**
+
+```bash
+# Create PR from develop to master
+gh pr create --base master --head develop --title "Release vX.X.X: Description"
+
+# Get final approval
+# Merge PR to master
+```
+
+#### Critical Rules
+
+❌ **FORBIDDEN:**
+```bash
+# Do NOT create PR directly to master from feature branches
+gh pr create --base master  # WRONG!
+
+# Do NOT push directly to master
+git push origin master  # BLOCKED by pre-push hook!
+```
+
+✅ **CORRECT:**
+```bash
+# Always create PR to develop first
+gh pr create --base develop  # CORRECT!
+
+# Only PR develop → master when stable
+gh pr create --base master --head develop  # CORRECT!
+```
+
 ### PR Template
 
 When creating a pull request, include:
@@ -678,8 +776,10 @@ PRs are merged when:
 1. ✅ All CI/CD checks pass
 2. ✅ At least one approving review
 3. ✅ No unresolved comments
-4. ✅ Up to date with main branch
+4. ✅ Up to date with target branch (develop or master)
 5. ✅ Clean commit history
+
+**Note**: For feature branches, target is `develop`. Only `develop → master` PRs merge to master.
 
 ## Issue Guidelines
 
