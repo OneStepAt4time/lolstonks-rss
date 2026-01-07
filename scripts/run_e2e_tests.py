@@ -21,8 +21,7 @@ import argparse
 
 def run_command(cmd, description):
     """Run a command and return success status."""
-    print(f"
-{'=' * 60}")
+    print(f"\n{'=' * 60}")
     print(f"{description}")
     print(f"{'=' * 60}")
     result = subprocess.run(cmd, shell=True)
@@ -36,8 +35,7 @@ def main():
     parser.add_argument("--smoke-only", action="store_true", help="Run only smoke tests")
     args = parser.parse_args()
 
-    print("
-" + "=" * 60)
+    print("\n" + "=" * 60)
     print("LoL Stonks RSS - E2E Test Suite")
     print("=" * 60)
 
@@ -46,29 +44,24 @@ def main():
         "pytest -m smoke -v",
         "Phase 1: Running Smoke Tests..."
     ):
-        print("
-[FAILED] SMOKE TESTS FAILED - Stopping execution")
+        print("\n[FAILED] SMOKE TESTS FAILED - Stopping execution")
         return 1
 
-    print("
-[PASS] Smoke tests passed!")
+    print("\n[PASS] Smoke tests passed!")
 
     if args.smoke_only:
-        print("
-[DONE] Smoke-only run complete!")
+        print("\n[DONE] Smoke-only run complete!")
         return 0
 
     # Phase 2: Functional tests (excluding slow)
     if not run_command(
-        "pytest -m "e2e and not slow" -v",
+        'pytest -m "e2e and not slow" -v',
         "Phase 2: Running Functional Tests..."
     ):
-        print("
-[FAILED] Functional tests failed!")
+        print("\n[FAILED] Functional tests failed!")
         return 1
 
-    print("
-[PASS] Functional tests passed!")
+    print("\n[PASS] Functional tests passed!")
 
     # Phase 3: Full E2E (with slow tests)
     if not args.skip_slow:
@@ -76,26 +69,21 @@ def main():
             "pytest -m e2e -v --tb=short",
             "Phase 3: Running Complete E2E Tests (including slow)..."
         ):
-            print("
-[FAILED] E2E tests failed!")
+            print("\n[FAILED] E2E tests failed!")
             return 1
-        print("
-[PASS] E2E tests passed!")
+        print("\n[PASS] E2E tests passed!")
     else:
-        print("
-[SKIP] Skipping slow tests (--skip-slow specified)")
+        print("\n[SKIP] Skipping slow tests (--skip-slow specified)")
 
     # Phase 4: Performance tests
     if not run_command(
         "pytest -m performance -v",
         "Phase 4: Running Performance Tests..."
     ):
-        print("
-[FAILED] Performance tests failed!")
+        print("\n[FAILED] Performance tests failed!")
         return 1
 
-    print("
-[PASS] Performance tests passed!")
+    print("\n[PASS] Performance tests passed!")
 
     # Coverage report (if requested)
     if args.coverage:
@@ -103,11 +91,9 @@ def main():
             "pytest --cov=src --cov-report=html -m e2e",
             "Generating Coverage Report..."
         ):
-            print("
-[WARN] Coverage generation had issues")
+            print("\n[WARN] Coverage generation had issues")
 
-    print("
-" + "=" * 60)
+    print("\n" + "=" * 60)
     print("[SUCCESS] ALL E2E TESTS PASSED!")
     print("=" * 60)
     return 0
