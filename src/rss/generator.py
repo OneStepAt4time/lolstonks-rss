@@ -86,7 +86,7 @@ class RSSFeedGenerator:
         # Let's verify: In validator, Input=[Newest, Oldest] -> Output=[Oldest, Newest].
         # This implies we should Reverse the input to get [Newest, Oldest] out?
         # Input=[Oldest, Newest] -> should give [Newest, Oldest]?
-        
+
         # Reversing the list to ensure correct order in XML
         for article in reversed(articles):
             self._add_article_entry(fg, article)
