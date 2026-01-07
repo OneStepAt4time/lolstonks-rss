@@ -80,7 +80,9 @@ class RSSFeedGenerator:
         fg.generator("LoL Stonks RSS Generator")
 
         # Add articles as feed entries
-        for article in articles:
+        # NOTE: feedgen.add_entry() prepends entries (adds to beginning),
+        # so we iterate in reverse to maintain correct order (newest first)
+        for article in reversed(articles):
             self._add_article_entry(fg, article)
 
         # Generate RSS 2.0 XML
