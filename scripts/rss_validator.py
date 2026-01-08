@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("rss_validator")
 
 
-def validate_rss_xml(xml_content: str):
+def validate_rss_xml(xml_content: str) -> bool:
     """Validate that the string is valid RSS 2.0 XML."""
     try:
         root = ET.fromstring(xml_content)
@@ -83,7 +83,7 @@ def validate_rss_xml(xml_content: str):
         return False
 
 
-async def main():
+async def main() -> None:
     import argparse
 
     parser = argparse.ArgumentParser(description="Validate RSS Feed")
@@ -158,9 +158,23 @@ async def main():
         # Additional check for order
         try:
             root = ET.fromstring(feed_xml)
-            items = root.find("channel").findall("item")
-            first_title = items[0].find("title").text
-            second_title = items[1].find("title").text
+            channel = root.find("channel")
+            if channel is None:
+                logger.error("Channel not found")
+                sys.exit(1)
+            items = channel.findall("item")
+            if len(items) < 2:
+                logger.error("Not enough items to check order")
+                sys.exit(1)
+            first_item = items[0]
+            second_item = items[1]
+            first_title_elem = first_item.find("title")
+            second_title_elem = second_item.find("title")
+            if first_title_elem is None or second_title_elem is None:
+                logger.error("Title elements not found")
+                sys.exit(1)
+            first_title = first_title_elem.text
+            second_title = second_title_elem.text
 
             logger.info(f"First item title: {first_title}")
             logger.info(f"Second item title: {second_title}")
