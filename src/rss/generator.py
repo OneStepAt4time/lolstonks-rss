@@ -80,8 +80,14 @@ class RSSFeedGenerator:
         fg.generator("LoL Stonks RSS Generator")
 
         # Add articles as feed entries
-        # NOTE: feedgen.add_entry() prepends entries (adds to beginning),
-        # so we iterate in reverse to maintain correct order (newest first)
+        # Note: feedgen adds items in a way that results in LIFO order (or we need to add oldest first)
+        # The database returns Newest -> Oldest.
+        # To get Newest -> Oldest in the XML, we need to iterate Oldest -> Newest?
+        # Let's verify: In validator, Input=[Newest, Oldest] -> Output=[Oldest, Newest].
+        # This implies we should Reverse the input to get [Newest, Oldest] out?
+        # Input=[Oldest, Newest] -> should give [Newest, Oldest]?
+
+        # Reversing the list to ensure correct order in XML
         for article in reversed(articles):
             self._add_article_entry(fg, article)
 
