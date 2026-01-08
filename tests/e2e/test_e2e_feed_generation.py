@@ -347,8 +347,8 @@ class TestFeedServiceV2:
         feed_xml = await service.get_feed_by_locale("en-us", limit=50)
         feed = feedparser.parse(feed_xml)
 
-        # Find a known article
-        entry = next((e for e in feed.entries if "Patch 14.1" in e.title), None)
+        # Find a known article by GUID (more specific than title search)
+        entry = next((e for e in feed.entries if e.get("guid") == "lol-en-us-patch-14-1"), None)
         assert entry is not None
 
         # Verify RSS field mapping
