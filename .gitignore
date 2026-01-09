@@ -77,6 +77,11 @@ coverage.xml
 # Temporary files
 nul
 
+# Browser profiles (development)
+chrome-profile/
+firefox-profile/
+edge-profile/
+
 # AI agent temporary files (plans, research notes, debug logs, drafts)
 tmp/
 
