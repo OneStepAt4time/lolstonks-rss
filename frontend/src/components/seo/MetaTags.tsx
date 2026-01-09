@@ -4,9 +4,7 @@
 import { useEffect } from 'react';
 import { generateMetaTags, type MetaTags as MetaTagsInput } from '../../utils/seo';
 
-interface MetaTagsProps extends MetaTagsInput {}
-
-export function MetaTags(props: MetaTagsProps) {
+export function MetaTags(props: MetaTagsInput) {
   useEffect(() => {
     const tags = generateMetaTags(props);
 

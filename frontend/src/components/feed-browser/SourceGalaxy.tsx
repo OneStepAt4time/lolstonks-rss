@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import { motion } from 'framer-motion';
@@ -125,8 +126,6 @@ export const SourceGalaxy = ({ onSourceClick }: SourceGalaxyProps) => {
 
   useEffect(() => {
     if (!svgRef.current) return;
-
-    setIsLoading(true);
 
     // Clear previous content
     d3.select(svgRef.current).selectAll('*').remove();

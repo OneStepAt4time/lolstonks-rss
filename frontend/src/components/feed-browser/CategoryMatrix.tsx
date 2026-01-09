@@ -78,7 +78,7 @@ export const CategoryMatrix = () => {
     ).length;
   };
 
-  const getLocaleCount = (_categoryId: string) => {
+  const getLocaleCount = () => {
     if (!feedsResponse?.supported_locales) return 0;
     return feedsResponse.supported_locales.length;
   };
@@ -98,7 +98,7 @@ export const CategoryMatrix = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {categories.map((category, index) => {
           const feedCount = getCategoryCount(category.id);
-          const localeCount = getLocaleCount(category.id);
+          const localeCount = getLocaleCount();
 
           return (
             <motion.a

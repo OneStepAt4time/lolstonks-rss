@@ -1,5 +1,5 @@
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 
 export const HeroSection = () => {
@@ -14,15 +14,20 @@ export const HeroSection = () => {
   const scale = useTransform(scrollYProgress, [0, 1], [1, 0.8]);
   const smoothScale = useSpring(scale, { stiffness: 100, damping: 30 });
 
-  // Floating particles data
-  const particles = Array.from({ length: 20 }, (_, i) => ({
+  // Floating particles data (stable reference)
+  const particles = useMemo(() => Array.from({ length: 20 }, (_, i) => ({
     id: i,
+    // eslint-disable-next-line react-hooks/purity -- Stable: computed once with empty deps
     x: Math.random() * 100 - 50,
+    // eslint-disable-next-line react-hooks/purity -- Stable: computed once with empty deps
     y: Math.random() * 100 - 50,
+    // eslint-disable-next-line react-hooks/purity -- Stable: computed once with empty deps
     size: Math.random() * 4 + 2,
+    // eslint-disable-next-line react-hooks/purity -- Stable: computed once with empty deps
     duration: Math.random() * 3 + 4,
+    // eslint-disable-next-line react-hooks/purity -- Stable: computed once with empty deps
     delay: Math.random() * 2,
-  }));
+  })), []); // Empty deps = computed once
 
   // Runes/symbols for background
   const runes = ['⚔', '🛡', '👑', '💎', '🔮', '🌟', '⚡', '🔥'];
