@@ -149,7 +149,7 @@ function GlobeScene({ onLocaleClick, hoveredLocale, onLocaleHover, selectedLocal
       </Sphere>
 
       {/* Locale Pins */}
-      {localesData.map((locale) => (
+      {localesData.map((locale: LocalePin) => (
         <GlobePin
           key={locale.code}
           locale={locale}
@@ -346,19 +346,19 @@ export const InteractiveGlobe = ({ onLocaleFilter }: InteractiveGlobeProps) => {
         </div>
         <div className="card p-4 text-center">
           <div className="text-2xl font-bold text-lol-blue mb-1">
-            {localesData.reduce((sum, l) => sum + l.articleCount, 0)}
+            {localesData.reduce((sum: number, l: LocalePin) => sum + l.articleCount, 0)}
           </div>
           <div className="text-xs text-gray-400">Total Articles</div>
         </div>
         <div className="card p-4 text-center">
           <div className="text-2xl font-bold text-purple-400 mb-1">
-            {Math.max(...localesData.map((l) => l.articleCount))}
+            {Math.max(...localesData.map((l: LocalePin) => l.articleCount))}
           </div>
           <div className="text-xs text-gray-400">Max (Locale)</div>
         </div>
         <div className="card p-4 text-center">
           <div className="text-2xl font-bold text-green-400 mb-1">
-            {Math.min(...localesData.map((l) => l.articleCount))}
+            {Math.min(...localesData.map((l: LocalePin) => l.articleCount))}
           </div>
           <div className="text-xs text-gray-400">Min (Locale)</div>
         </div>
