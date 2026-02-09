@@ -1,9 +1,9 @@
 name: Publish News to GitHub Pages
 
 on:
-  # Run every 30 minutes to avoid GitHub Pages rate limiting
+  # Run every 15 minutes to avoid GitHub Pages rate limiting
   schedule:
-    - cron: '*/30 * * * *'
+    - cron: '*/15 * * * *'
 
   # Allow manual trigger
   workflow_dispatch:
