@@ -1,0 +1,22 @@
+version: 2
+updates:
+  # Update Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "OneStepAt4time"
+    labels:
+      - "dependencies"
+      - "security"
+
+  # Update GitHub Actions dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
