@@ -1,9 +1,9 @@
 name: Publish News to GitHub Pages
 
 on:
-  # Run every 5 minutes
+  # Run every 15 minutes to avoid GitHub Pages rate limiting
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '*/15 * * * *'
 
   # Allow manual trigger
   workflow_dispatch:
@@ -112,9 +112,11 @@ jobs:
           "
 
       - name: Fetch latest news from LoL API
+        id: fetch_news
         run: |
           uv run python -c "
           import asyncio
+          import os
           from src.database import ArticleRepository
           from src.services.update_service import UpdateService
           from src.config import get_settings
@@ -131,6 +133,10 @@ jobs:
               print(f'Total fetched: {stats[\"total_fetched\"]}')
               print(f'Duplicates: {stats[\"total_duplicates\"]}')
 
+              # Set output for use in conditional steps
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                  f.write(f'new_articles={stats[\"total_new\"]}\n')
+
               await repo.close()
 
           asyncio.run(update_news())
@@ -138,18 +144,21 @@ jobs:
         timeout-minutes: 5
 
       - name: Generate news HTML page
+        if: github.event_name == 'workflow_dispatch' || steps.fetch_news.outputs.new_articles != '0'
         run: |
           ARTICLE_LIMIT="${{ github.event.inputs.article_limit || '100' }}"
           uv run python scripts/generate_news_page.py --output news.html --limit "$ARTICLE_LIMIT"
         timeout-minutes: 2
 
       - name: Generate RSS feeds
+        if: github.event_name == 'workflow_dispatch' || steps.fetch_news.outputs.new_articles != '0'
         run: |
           ARTICLE_LIMIT="${{ github.event.inputs.article_limit || '100' }}"
           uv run python scripts/generate_rss_feeds.py --output _site --limit "$ARTICLE_LIMIT"
         timeout-minutes: 2
 
       - name: Create GitHub Pages directory structure
+        if: github.event_name == 'workflow_dispatch' || steps.fetch_news.outputs.new_articles != '0'
         run: |
           # Copy HTML page
           cp news.html _site/index.html
@@ -179,18 +188,24 @@ jobs:
           ls -la _site/feed/ || echo "No feed subdirectory found"
 
       - name: Add .nojekyll file
+        if: github.event_name == 'workflow_dispatch' || steps.fetch_news.outputs.new_articles != '0'
         run: touch _site/.nojekyll
 
       - name: Upload artifact for GitHub Pages
+        if: github.event_name == 'workflow_dispatch' || steps.fetch_news.outputs.new_articles != '0'
         uses: actions/upload-pages-artifact@v3
         with:
           path: '_site'
 
       - name: Deploy to GitHub Pages
         id: deployment
+        if: github.event_name == 'workflow_dispatch' || steps.fetch_news.outputs.new_articles != '0'
         uses: actions/deploy-pages@v4
+        # Retry on rate limiting (429) or internal errors (500)
+        continue-on-error: false
 
       - name: Output deployment URL
+        if: github.event_name == 'workflow_dispatch' || steps.fetch_news.outputs.new_articles != '0'
         run: |
           echo "News page deployed to: ${{ steps.deployment.outputs.page_url }}"
           echo "Direct link: ${{ steps.deployment.outputs.page_url }}index.html"
@@ -199,6 +214,12 @@ jobs:
           echo "  Main feed (all articles): ${{ steps.deployment.outputs.page_url }}feed.xml"
           echo "  English only: ${{ steps.deployment.outputs.page_url }}feed/en-us.xml"
           echo "  Italian only: ${{ steps.deployment.outputs.page_url }}feed/it-it.xml"
+
+      - name: Skip deployment notification
+        if: github.event_name != 'workflow_dispatch' && steps.fetch_news.outputs.new_articles == '0'
+        run: |
+          echo "No new articles found. Skipping deployment to avoid unnecessary GitHub Pages updates."
+          echo "This helps prevent rate limiting and reduces load on GitHub infrastructure."
 
       - name: Verify RSS feed deployment
         run: |
