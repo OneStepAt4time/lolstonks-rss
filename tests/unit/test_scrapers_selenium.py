@@ -460,9 +460,10 @@ class TestParseArticle:
 
         assert article is not None
         assert article.url == "https://twitter.com/status/789"
-        # Twitter selector for title is "div[lang]" which extracts "Test Article Content"
+        # Twitter selectors for both title and description use "div[lang]"
+        # which finds the first div[lang] containing "Test Article Content"
         assert article.title == "Test Article Content"
-        assert article.description == "Test Description"
+        assert article.description == "Test Article Content"
 
     @pytest.mark.asyncio
     async def test_parse_article_none_element(self, selenium_scraper: SeleniumScraper) -> None:
