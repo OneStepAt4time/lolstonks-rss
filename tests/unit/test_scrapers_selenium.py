@@ -460,6 +460,8 @@ class TestParseArticle:
 
         assert article is not None
         assert article.url == "https://twitter.com/status/789"
+        # Title is extracted from div[lang] with "Test Article Content"
+        assert "Test Article Content" in article.title or "Test" in article.title
         assert article.description == "Test Description"
 
     @pytest.mark.asyncio
@@ -880,17 +882,12 @@ class TestAsyncContextManagement:
 
     @pytest.mark.asyncio
     async def test_close_method(self, selenium_scraper: SeleniumScraper) -> None:
-        """Test close method."""
+        """Test close method calls cleanup_driver."""
         with patch.object(
             selenium_scraper, "_cleanup_driver", new_callable=AsyncMock
         ) as mock_cleanup:
-            with patch.object(
-                selenium_scraper, "close", new_callable=AsyncMock
-            ) as mock_super_close:
-                mock_cleanup.return_value = None
-                mock_super_close.return_value = None
+            mock_cleanup.return_value = None
 
-                await selenium_scraper.close()
+            await selenium_scraper.close()
 
-                mock_cleanup.assert_called_once()
-                mock_super_close.assert_called_once()
+            mock_cleanup.assert_called_once()
