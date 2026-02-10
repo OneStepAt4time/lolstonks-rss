@@ -66,13 +66,11 @@ export const LocaleColumnSkeleton = ({ localeCount = 5, index = 0 }: LocaleColum
  * - Smooth pulse effect
  */
 interface LocaleRegionSectionSkeletonProps {
-  regionName?: string;
   localeCount?: number;
   index?: number;
 }
 
 export const LocaleRegionSectionSkeleton = ({
-  regionName = 'Loading...',
   localeCount = 5,
   index = 0,
 }: LocaleRegionSectionSkeletonProps) => {

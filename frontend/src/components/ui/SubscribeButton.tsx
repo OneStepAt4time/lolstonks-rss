@@ -6,7 +6,7 @@ interface RssReader {
   name: string;
   icon: string;
   color: string;
-  url: string;
+  url: string | ((feedUrl: string) => string);
   description: string;
 }
 
@@ -84,7 +84,6 @@ const iconSize = {
 
 export const SubscribeButton = ({
   feedUrl,
-  feedTitle = 'LoL Stonks RSS',
   className = '',
   variant = 'dropdown',
   size = 'md',
@@ -110,7 +109,7 @@ export const SubscribeButton = ({
   }, [isOpen]);
 
   const handleSubscribe = (reader: RssReader) => {
-    const subscriptionUrl = typeof reader.url === 'function' ? reader.url(feedUrl) : reader.url;
+    const subscriptionUrl: string = typeof reader.url === 'function' ? reader.url(feedUrl) : reader.url;
     window.open(subscriptionUrl, '_blank', 'noopener,noreferrer');
     setIsOpen(false);
   };
