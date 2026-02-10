@@ -5,7 +5,7 @@
 import { writeFileSync } from 'fs';
 import { join } from 'path';
 
-const SITE_URL = 'https://onestepat4time.github.io/lolstonksrss';
+const SITE_URL = 'https://onestepat4time.github.io/lolstonks-rss';
 
 /**
  * Generate robots.txt content
