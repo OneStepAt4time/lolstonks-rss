@@ -1,0 +1,39 @@
+# Dependabot configuration for LoL Stonks RSS
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  # Python dependencies (pip/requirements.txt)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "security"
+      - "python"
+    reviewers:
+      - "OneStepAt4time"
+    commit-message:
+      prefix: "feat(deps)"
+      prefix-development: "chore(deps)"
+      include: "scope"
+
+  # GitHub Actions dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "security"
+      - "ci"
+    reviewers:
+      - "OneStepAt4time"
+    commit-message:
+      prefix: "ci(deps)"
+      include: "scope"
