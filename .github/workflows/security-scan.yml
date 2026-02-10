@@ -94,7 +94,7 @@ jobs:
         run: docker build -t lolstonksrss:scan .
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.33.1
         with:
           image-ref: 'lolstonksrss:scan'
           format: 'sarif'
