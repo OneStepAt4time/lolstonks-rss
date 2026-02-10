@@ -27,7 +27,7 @@ The LoL Stonks RSS API provides HTTP endpoints for accessing League of Legends n
 ### Key Features
 
 - **RSS 2.0 compliant** XML feeds
-- **Multi-language support** (English, Italian)
+- **Multi-language support** (20 locales: English, Spanish, French, German, Italian, Portuguese, Russian, Turkish, Polish, Japanese, Korean, Chinese, Arabic, Vietnamese, Thai, Indonesian, Filipino)
 - **Category filtering** for topic-specific feeds
 - **Source filtering** for language-specific feeds
 - **Intelligent caching** for optimal performance
@@ -76,7 +76,25 @@ No authentication is required for public endpoints. Admin endpoints may be prote
 | Source ID | Language | Description |
 |-----------|----------|-------------|
 | `en-us` | English (US) | English League of Legends news |
-| `it-it` | Italian | Italian League of Legends news |
+| `en-gb` | English (GB) | English League of Legends news (UK) |
+| `es-es` | Spanish (ES) | Spanish League of Legends news (Spain) |
+| `es-mx` | Spanish (MX) | Spanish League of Legends news (Latin America) |
+| `fr-fr` | French (FR) | French League of Legends news |
+| `de-de` | German (DE) | German League of Legends news |
+| `it-it` | Italian (IT) | Italian League of Legends news |
+| `pt-br` | Portuguese (BR) | Portuguese League of Legends news (Brazil) |
+| `ru-ru` | Russian (RU) | Russian League of Legends news |
+| `tr-tr` | Turkish (TR) | Turkish League of Legends news |
+| `pl-pl` | Polish (PL) | Polish League of Legends news |
+| `ja-jp` | Japanese (JP) | Japanese League of Legends news |
+| `ko-kr` | Korean (KR) | Korean League of Legends news |
+| `zh-cn` | Chinese (CN) | Chinese League of Legends news (Simplified) |
+| `zh-tw` | Chinese (TW) | Chinese League of Legends news (Traditional) |
+| `ar-ae` | Arabic (AE) | Arabic League of Legends news |
+| `vi-vn` | Vietnamese (VN) | Vietnamese League of Legends news |
+| `th-th` | Thai (TH) | Thai League of Legends news |
+| `id-id` | Indonesian (ID) | Indonesian League of Legends news |
+| `ph-ph` | Filipino (PH) | Filipino League of Legends news |
 
 ---
 
@@ -102,7 +120,7 @@ LoL Stonks RSS Feed
 
 Available endpoints:
 - GET /feed.xml - Main RSS feed (all sources)
-- GET /feed/{source}.xml - Source-specific feed (en-us, it-it)
+- GET /feed/{source}.xml - Source-specific feed (20 locales available)
 - GET /feed/category/{category}.xml - Category-specific feed
 - GET /health - Health check
 - GET /docs - API documentation
@@ -163,13 +181,13 @@ Invoke-WebRequest -Uri "http://localhost:8000/feed.xml" -OutFile "feed.xml"
     <link>https://www.leagueoflegends.com/news</link>
     <description>Latest League of Legends news and updates</description>
     <language>en</language>
-    <lastBuildDate>Sun, 29 Dec 2024 10:30:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 29 Jan 2025 10:30:00 +0000</lastBuildDate>
     <generator>LoL Stonks RSS Generator</generator>
     <item>
-      <title>Patch 14.25 Notes</title>
-      <link>https://www.leagueoflegends.com/en-us/news/game-updates/patch-14-25-notes</link>
-      <guid isPermaLink="true">patch-14-25-notes</guid>
-      <pubDate>Fri, 27 Dec 2024 16:00:00 +0000</pubDate>
+      <title>Patch 15.1 Notes</title>
+      <link>https://www.leagueoflegends.com/en-us/news/game-updates/patch-15-1-notes</link>
+      <guid isPermaLink="true">patch-15-1-notes</guid>
+      <pubDate>Fri, 27 Jan 2025 16:00:00 +0000</pubDate>
       <description>The final patch of 2024 is here!</description>
       <category>Game Updates</category>
       <category>lol-en-us</category>
@@ -199,7 +217,7 @@ Get RSS feed filtered by source (language-specific).
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `source` | string | Yes | Source identifier: `en-us` or `it-it` |
+| `source` | string | Yes | Source identifier: One of 20 supported locales (en-us, en-gb, es-es, es-mx, fr-fr, de-de, it-it, pt-br, ru-ru, tr-tr, pl-pl, ja-jp, ko-kr, zh-cn, zh-tw, ar-ae, vi-vn, th-th, id-id, ph-ph) |
 
 **Query Parameters:**
 
@@ -249,13 +267,13 @@ Invoke-WebRequest -Uri "http://localhost:8000/feed/it-it.xml" -OutFile "feed-it.
     <link>https://www.leagueoflegends.com/news</link>
     <description>Ultime notizie e aggiornamenti di League of Legends</description>
     <language>it</language>
-    <lastBuildDate>Sun, 29 Dec 2024 10:30:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 29 Jan 2025 10:30:00 +0000</lastBuildDate>
     <generator>LoL Stonks RSS Generator</generator>
     <item>
       <title>Note sulla patch 14.25</title>
-      <link>https://www.leagueoflegends.com/it-it/news/game-updates/patch-14-25-notes</link>
-      <guid isPermaLink="true">patch-14-25-notes-it</guid>
-      <pubDate>Fri, 27 Dec 2024 16:00:00 +0000</pubDate>
+      <link>https://www.leagueoflegends.com/it-it/news/game-updates/patch-15-1-notes</link>
+      <guid isPermaLink="true">patch-15-1-notes-it</guid>
+      <pubDate>Fri, 27 Jan 2025 16:00:00 +0000</pubDate>
       <description>L'ultima patch del 2024 è qui!</description>
       <category>Aggiornamenti di gioco</category>
       <category>lol-it-it</category>
@@ -268,7 +286,7 @@ Invoke-WebRequest -Uri "http://localhost:8000/feed/it-it.xml" -OutFile "feed-it.
 **Error Response (Invalid Source):**
 ```json
 {
-  "detail": "Source 'fr-fr' not found. Available: ['en-us', 'it-it']"
+  "detail": "Source 'xx-xx' not found. Available: ['en-us', 'en-gb', 'es-es', 'es-mx', 'fr-fr', 'de-de', 'it-it', 'pt-br', 'ru-ru', 'tr-tr', 'pl-pl', 'ja-jp', 'ko-kr', 'zh-cn', 'zh-tw', 'ar-ae', 'vi-vn', 'th-th', 'id-id', 'ph-ph']"
 }
 ```
 
@@ -360,13 +378,13 @@ with open('champions.xml', 'wb') as f:
     <link>https://www.leagueoflegends.com/news</link>
     <description>Latest League of Legends news and updates</description>
     <language>en</language>
-    <lastBuildDate>Sun, 29 Dec 2024 10:30:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 29 Jan 2025 10:30:00 +0000</lastBuildDate>
     <generator>LoL Stonks RSS Generator</generator>
     <item>
       <title>Champion Roadmap: December 2024</title>
       <link>https://www.leagueoflegends.com/en-us/news/dev/champion-roadmap-dec-2024</link>
       <guid isPermaLink="true">champion-roadmap-dec-2024</guid>
-      <pubDate>Wed, 25 Dec 2024 14:00:00 +0000</pubDate>
+      <pubDate>Wed, 25 Jan 2025 14:00:00 +0000</pubDate>
       <description>Sneak peek at upcoming champions</description>
       <category>Champions</category>
       <category>Dev</category>
@@ -556,18 +574,18 @@ Invoke-RestMethod -Uri "http://localhost:8000/admin/scheduler/status"
 {
   "scheduler_running": true,
   "interval_minutes": 30,
-  "next_run": "2024-12-29T11:00:00.000000",
+  "next_run": "2025-01-15T11:00:00.000000",
   "jobs": [
     {
       "id": "news_update_job",
       "name": "news_update_job",
-      "next_run_time": "2024-12-29T11:00:00.000000",
+      "next_run_time": "2025-01-15T11:00:00.000000",
       "trigger": "interval[0:30:00]"
     }
   ],
   "update_service_stats": {
     "total_updates": 48,
-    "last_update": "2024-12-29T10:30:15.123456",
+    "last_update": "2025-01-15T10:30:15.123456",
     "last_update_duration": 12.5,
     "articles_fetched": 156,
     "articles_new": 8,
@@ -642,7 +660,7 @@ Invoke-RestMethod -Method Post -Uri "http://localhost:8000/admin/scheduler/trigg
   "articles_new": 12,
   "articles_updated": 3,
   "sources_updated": ["lol-en-us", "lol-it-it"],
-  "timestamp": "2024-12-29T10:45:30.123456"
+  "timestamp": "2025-01-15T10:45:30.123456"
 }
 ```
 
@@ -708,10 +726,10 @@ All feed endpoints return RSS 2.0 compliant XML with the following structure:
 **Example Complete Item:**
 ```xml
 <item>
-  <title>Patch 14.25 Notes</title>
-  <link>https://www.leagueoflegends.com/en-us/news/game-updates/patch-14-25-notes</link>
-  <guid isPermaLink="true">patch-14-25-notes</guid>
-  <pubDate>Fri, 27 Dec 2024 16:00:00 +0000</pubDate>
+  <title>Patch 15.1 Notes</title>
+  <link>https://www.leagueoflegends.com/en-us/news/game-updates/patch-15-1-notes</link>
+  <guid isPermaLink="true">patch-15-1-notes</guid>
+  <pubDate>Fri, 27 Jan 2025 16:00:00 +0000</pubDate>
   <description>The final patch of 2024 brings balance changes...</description>
   <content:encoded><![CDATA[
     <p>The final patch of 2024 brings balance changes...</p>
@@ -723,7 +741,7 @@ All feed endpoints return RSS 2.0 compliant XML with the following structure:
   <category>Patches</category>
   <category>lol-en-us</category>
   <enclosure
-    url="https://images.contentstack.io/v3/assets/patch-14-25.jpg"
+    url="https://images.contentstack.io/v3/assets/patch-15-1.jpg"
     type="image/jpeg"
     length="0"/>
 </item>
@@ -775,11 +793,11 @@ FastAPI returns errors in the following JSON format:
 
 **404 - Invalid Source:**
 ```bash
-curl http://localhost:8000/feed/fr-fr.xml
+curl http://localhost:8000/feed/xx-xx.xml
 ```
 ```json
 {
-  "detail": "Source 'fr-fr' not found. Available: ['en-us', 'it-it']"
+  "detail": "Source 'xx-xx' not found. Available: ['en-us', 'en-gb', 'es-es', 'es-mx', 'fr-fr', 'de-de', 'it-it', 'pt-br', 'ru-ru', 'tr-tr', 'pl-pl', 'ja-jp', 'ko-kr', 'zh-cn', 'zh-tw', 'ar-ae', 'vi-vn', 'th-th', 'id-id', 'ph-ph']"
 }
 ```
 
@@ -827,19 +845,19 @@ docker logs -f lolstonksrss
     <atom:link href="http://localhost:8000/feed.xml" rel="self" type="application/rss+xml"/>
     <description>Latest League of Legends news and updates</description>
     <language>en</language>
-    <lastBuildDate>Sun, 29 Dec 2024 10:30:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 29 Jan 2025 10:30:00 +0000</lastBuildDate>
     <generator>LoL Stonks RSS Generator</generator>
 
     <!-- Article Items -->
     <item>
-      <title>Patch 14.25 Notes</title>
-      <link>https://www.leagueoflegends.com/en-us/news/game-updates/patch-14-25-notes</link>
-      <guid isPermaLink="true">patch-14-25-notes</guid>
-      <pubDate>Fri, 27 Dec 2024 16:00:00 +0000</pubDate>
+      <title>Patch 15.1 Notes</title>
+      <link>https://www.leagueoflegends.com/en-us/news/game-updates/patch-15-1-notes</link>
+      <guid isPermaLink="true">patch-15-1-notes</guid>
+      <pubDate>Fri, 27 Jan 2025 16:00:00 +0000</pubDate>
       <description>The final patch of 2024 is here with balance changes and bug fixes!</description>
 
       <content:encoded><![CDATA[
-        <h1>Patch 14.25 Notes</h1>
+        <h1>Patch 15.1 Notes</h1>
         <p>Welcome to the final patch of 2024!</p>
         <h2>Champion Updates</h2>
         <ul>
@@ -855,7 +873,7 @@ docker logs -f lolstonksrss
       <category>lol-en-us</category>
 
       <enclosure
-        url="https://images.contentstack.io/v3/assets/blt731...../patch-14-25-banner.jpg"
+        url="https://images.contentstack.io/v3/assets/blt731...../patch-15-1-banner.jpg"
         type="image/jpeg"
         length="0"/>
     </item>
@@ -877,7 +895,7 @@ The feed adheres to [RSS 2.0 specification](https://www.rssboard.org/rss-specifi
   - `content` for content:encoded
   - `atom` for self-referencing links
 - **Required Elements:** All required channel and item elements present
-- **Date Format:** RFC 822 format (e.g., "Fri, 27 Dec 2024 16:00:00 +0000")
+- **Date Format:** RFC 822 format (e.g., "Fri, 27 Jan 2025 16:00:00 +0000")
 - **GUID:** Permanent link with `isPermaLink="true"`
 - **Categories:** Multiple categories supported per item
 - **Enclosures:** Media files (images) as enclosures
@@ -1004,7 +1022,8 @@ while ($true) {
 
 **Download all source feeds:**
 ```powershell
-@('en-us', 'it-it') | ForEach-Object {
+$sources = @('en-us', 'en-gb', 'es-es', 'es-mx', 'fr-fr', 'de-de', 'it-it', 'pt-br', 'ru-ru', 'tr-tr', 'pl-pl', 'ja-jp', 'ko-kr', 'zh-cn', 'zh-tw', 'ar-ae', 'vi-vn', 'th-th', 'id-id', 'ph-ph')
+$sources | ForEach-Object {
     $url = "http://localhost:8000/feed/$_.xml"
     $file = "feed-$_.xml"
     Invoke-WebRequest -Uri $url -OutFile $file
@@ -1478,12 +1497,12 @@ docker restart lolstonksrss
 
 ## API Changelog
 
-### Version 1.0.0 (2024-12-29)
+### Version 1.0.0 (2025-01-15)
 
 **Initial Release:**
 
 - RSS 2.0 feed generation
-- Multi-language support (en-us, it-it)
+- Multi-language support (20 locales: en-us, en-gb, es-es, es-mx, fr-fr, de-de, it-it, pt-br, ru-ru, tr-tr, pl-pl, ja-jp, ko-kr, zh-cn, zh-tw, ar-ae, vi-vn, th-th, id-id, ph-ph)
 - Category filtering
 - Source filtering
 - Health check endpoint
