@@ -460,8 +460,8 @@ class TestParseArticle:
 
         assert article is not None
         assert article.url == "https://twitter.com/status/789"
-        # Title is extracted from div[lang] with "Test Article Content"
-        assert "Test Article Content" in article.title or "Test" in article.title
+        # Twitter selector for title is "div[lang]" which extracts "Test Article Content"
+        assert article.title == "Test Article Content"
         assert article.description == "Test Description"
 
     @pytest.mark.asyncio

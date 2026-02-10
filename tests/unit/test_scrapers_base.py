@@ -256,22 +256,29 @@ class TestClientProperty:
         """Test that closed client is recreated."""
         client1 = minimal_scraper.client
 
-        # Simulate client being closed
-        minimal_scraper._client.is_closed = True
+        # Access the client to check if closed
+        assert not client1.is_closed
 
+        # Simulate client being closed by actually closing it
+        import asyncio
+
+        asyncio.run(client1.aclose())
+
+        # Now accessing client property should create new client
         client2 = minimal_scraper.client
 
         # Should create new client
         assert client2 is not client1
+        assert not client2.is_closed
 
     @pytest.mark.asyncio
     async def test_client_has_correct_timeout(self, minimal_scraper: BaseScraper) -> None:
-        """Test that client has configured timeout."""
-        minimal_scraper.config.timeout_seconds = 45
-
+        """Test that client has configured timeout from config."""
+        # The minimal_scraper uses default timeout from config
         client = minimal_scraper.client
 
-        assert client.timeout == 45
+        # httpx.Timeout is a special object, compare the timeout value
+        assert client.timeout == httpx.Timeout(minimal_scraper.config.timeout_seconds)
 
     @pytest.mark.asyncio
     async def test_client_has_correct_headers(self, minimal_scraper: BaseScraper) -> None:
@@ -786,7 +793,7 @@ class TestAsyncContextManagement:
         scraper = RSSScraper(config, "en-us")
 
         # Access client to create it
-        client = scraper.client
+        _ = scraper.client
         assert scraper._client is not None
 
         # Exit context
