@@ -188,7 +188,7 @@ Invoke-WebRequest -Uri "http://localhost:8000/feed.xml" -OutFile "feed.xml"
       <link>https://www.leagueoflegends.com/en-us/news/game-updates/patch-15-1-notes</link>
       <guid isPermaLink="true">patch-15-1-notes</guid>
       <pubDate>Fri, 27 Jan 2025 16:00:00 +0000</pubDate>
-      <description>The final patch of 2024 is here!</description>
+      <description>The final patch of 2025 is here!</description>
       <category>Game Updates</category>
       <category>lol-en-us</category>
       <enclosure url="https://images.contentstack.io/..." type="image/jpeg" length="0"/>
@@ -274,7 +274,7 @@ Invoke-WebRequest -Uri "http://localhost:8000/feed/it-it.xml" -OutFile "feed-it.
       <link>https://www.leagueoflegends.com/it-it/news/game-updates/patch-15-1-notes</link>
       <guid isPermaLink="true">patch-15-1-notes-it</guid>
       <pubDate>Fri, 27 Jan 2025 16:00:00 +0000</pubDate>
-      <description>L'ultima patch del 2024 è qui!</description>
+      <description>L'ultima patch del 2025 è qui!</description>
       <category>Aggiornamenti di gioco</category>
       <category>lol-it-it</category>
     </item>
@@ -381,9 +381,9 @@ with open('champions.xml', 'wb') as f:
     <lastBuildDate>Sun, 29 Jan 2025 10:30:00 +0000</lastBuildDate>
     <generator>LoL Stonks RSS Generator</generator>
     <item>
-      <title>Champion Roadmap: December 2024</title>
-      <link>https://www.leagueoflegends.com/en-us/news/dev/champion-roadmap-dec-2024</link>
-      <guid isPermaLink="true">champion-roadmap-dec-2024</guid>
+      <title>Champion Roadmap: January 2025</title>
+      <link>https://www.leagueoflegends.com/en-us/news/dev/champion-roadmap-jan-2025</link>
+      <guid isPermaLink="true">champion-roadmap-jan-2025</guid>
       <pubDate>Wed, 25 Jan 2025 14:00:00 +0000</pubDate>
       <description>Sneak peek at upcoming champions</description>
       <category>Champions</category>
@@ -730,9 +730,9 @@ All feed endpoints return RSS 2.0 compliant XML with the following structure:
   <link>https://www.leagueoflegends.com/en-us/news/game-updates/patch-15-1-notes</link>
   <guid isPermaLink="true">patch-15-1-notes</guid>
   <pubDate>Fri, 27 Jan 2025 16:00:00 +0000</pubDate>
-  <description>The final patch of 2024 brings balance changes...</description>
+  <description>The final patch of 2025 brings balance changes...</description>
   <content:encoded><![CDATA[
-    <p>The final patch of 2024 brings balance changes...</p>
+    <p>The final patch of 2025 brings balance changes...</p>
     <h2>Champion Updates</h2>
     <ul><li>Ahri: Base stats adjusted</li></ul>
   ]]></content:encoded>
@@ -854,11 +854,11 @@ docker logs -f lolstonksrss
       <link>https://www.leagueoflegends.com/en-us/news/game-updates/patch-15-1-notes</link>
       <guid isPermaLink="true">patch-15-1-notes</guid>
       <pubDate>Fri, 27 Jan 2025 16:00:00 +0000</pubDate>
-      <description>The final patch of 2024 is here with balance changes and bug fixes!</description>
+      <description>The final patch of 2025 is here with balance changes and bug fixes!</description>
 
       <content:encoded><![CDATA[
         <h1>Patch 15.1 Notes</h1>
-        <p>Welcome to the final patch of 2024!</p>
+        <p>Welcome to the final patch of 2025!</p>
         <h2>Champion Updates</h2>
         <ul>
           <li><strong>Ahri:</strong> Base armor increased</li>
