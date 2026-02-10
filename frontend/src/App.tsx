@@ -3,10 +3,13 @@ import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 import { PageTransition } from './components/layout/PageTransition';
 import { ToastContainer } from './components/ui/Toast';
+import { ApiStatusIndicator } from './components/ui/ApiStatusIndicator';
 import { useToast } from './hooks/useToast';
 import { HomePage } from './pages/HomePage';
 import { FeedsPage } from './pages/FeedsPage';
+import { AllFeedsPage } from './pages/AllFeedsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { LocaleComparisonPage } from './pages/LocaleComparisonPage';
 import './styles/globals.css';
 
 function App() {
@@ -28,6 +31,16 @@ function App() {
                 <FeedsPage />
               </PageTransition>
             } />
+            <Route path="/all-feeds" element={
+              <PageTransition>
+                <AllFeedsPage />
+              </PageTransition>
+            } />
+            <Route path="/compare" element={
+              <PageTransition>
+                <LocaleComparisonPage />
+              </PageTransition>
+            } />
             <Route path="*" element={
               <PageTransition>
                 <NotFoundPage />
@@ -37,6 +50,9 @@ function App() {
         </main>
         <Footer />
       </div>
+
+      {/* API Status Indicator */}
+      <ApiStatusIndicator position="fixed" showLabel={false} />
 
       {/* Toast Container */}
       <ToastContainer toasts={toasts} onClose={removeToast} />

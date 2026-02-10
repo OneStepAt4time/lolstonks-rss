@@ -4,8 +4,9 @@ import { motion } from 'framer-motion';
 export const Navigation = () => {
   const navItems = [
     { path: '/', label: 'Home' },
-    { path: '/feeds', label: 'Feeds' },
-    { path: '/about', label: 'About' },
+    { path: '/feeds', label: 'Browse Feeds' },
+    { path: '/all-feeds', label: 'All Feeds' },
+    { path: '/compare', label: 'Compare' },
   ];
 
   return (

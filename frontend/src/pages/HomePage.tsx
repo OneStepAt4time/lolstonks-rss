@@ -1,5 +1,9 @@
 import { ArticleGrid } from '../components/articles/ArticleGrid';
 import { HeroSection } from '../components/home/HeroSection';
+import { QuickStats } from '../components/home/QuickStats';
+import { FeatureHighlights } from '../components/home/FeatureHighlights';
+import { TrendingFeeds } from '../components/home/TrendingFeeds';
+import { QuickStartGuide } from '../components/home/QuickStartGuide';
 import { MetaTags } from '../components/seo';
 import { generateWebsiteStructuredData } from '../utils/seo';
 import { StructuredData } from '../components/seo';
@@ -20,8 +24,20 @@ export const HomePage = () => {
       <StructuredData data={generateWebsiteStructuredData()} />
 
       <div>
-        {/* Hero Section with Parallax */}
+        {/* Hero Section with Parallax and 3D Hextech Crystal */}
         <HeroSection />
+
+        {/* Quick Stats Section */}
+        <QuickStats />
+
+        {/* Feature Highlights Section */}
+        <FeatureHighlights />
+
+        {/* Trending Feeds Section */}
+        <TrendingFeeds />
+
+        {/* Quick Start Guide */}
+        <QuickStartGuide />
 
         {/* Articles Grid */}
         <div className="container mx-auto px-4 py-12">

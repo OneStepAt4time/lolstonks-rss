@@ -24,6 +24,7 @@ export const Header = () => {
   const navLinks = [
     { path: '/', label: 'Home' },
     { path: '/feeds', label: 'Feeds' },
+    { path: '/compare', label: 'Compare' },
   ];
 
   return (

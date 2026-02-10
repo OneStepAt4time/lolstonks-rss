@@ -125,8 +125,8 @@ export default {
           '50%': { transform: 'translateY(-20px)' },
         },
         shimmer: {
-          '0%': { backgroundPosition: '-1000px 0' },
-          '100%': { backgroundPosition: '1000px 0' },
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
         },
         gradientShift: {
           '0%, 100%': { backgroundPosition: '0% 50%' },

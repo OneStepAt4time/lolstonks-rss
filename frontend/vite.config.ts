@@ -30,29 +30,8 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
-        // Optimize manual chunks for better caching
-        manualChunks: (id) => {
-          // React core
-          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
-            return 'react-core';
-          }
-          // React Router
-          if (id.includes('node_modules/react-router-dom/')) {
-            return 'react-router';
-          }
-          // Three.js
-          if (id.includes('node_modules/three/') || id.includes('node_modules/@react-three/')) {
-            return 'three-vendor';
-          }
-          // UI libraries
-          if (id.includes('node_modules/framer-motion/') || id.includes('node_modules/zustand/')) {
-            return 'ui-library';
-          }
-          // Other node modules
-          if (id.includes('node_modules')) {
-            return 'vendor';
-          }
-        },
+        // Disable manual chunks to avoid module loading issues
+        // Everything will be bundled together for now
       },
     },
     // Optimize assets
