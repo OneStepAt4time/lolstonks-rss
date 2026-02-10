@@ -5,6 +5,7 @@ import time
 from unittest.mock import patch
 
 import pytest
+import redis
 from redis.exceptions import ConnectionError, TimeoutError
 
 from src.utils.cache import RedisCacheBackend, create_cache_backend
@@ -12,6 +13,29 @@ from src.utils.cache import RedisCacheBackend, create_cache_backend
 # Test configuration
 REDIS_URL = os.getenv("TEST_REDIS_URL", "redis://localhost:6379/1")
 REDIS_TEST_KEY_PREFIX = "test_lolstonks:"
+
+
+# Check if Redis is available for testing
+def redis_available() -> bool:
+    """Check if Redis is available for testing."""
+    try:
+        client = redis.from_url(REDIS_URL, socket_connect_timeout=1)
+        client.ping()
+        client.close()
+        return True
+    except Exception:
+        return False
+
+
+# Skip all Redis tests if Redis is not available
+pytestmark = [
+    pytest.mark.skipif(
+        not redis_available(),
+        reason="Redis not available - set TEST_REDIS_URL or start Redis with docker-compose up -d redis"
+    ),
+    pytest.mark.integration,
+    pytest.mark.redis,
+]
 
 
 @pytest.mark.redis
