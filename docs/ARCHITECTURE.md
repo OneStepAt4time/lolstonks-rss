@@ -2466,7 +2466,7 @@ The system balances **production readiness** with **future extensibility**, prov
 ---
 
 **For more information, see**:
-- [DEPLOYMENT_QUICKSTART.md](../DEPLOYMENT_QUICKSTART.md) - Quick deployment guide
+- [DEPLOYMENT_GUIDE.md](../DEPLOYMENT_GUIDE.md) - Deployment guide
 - [WINDOWS_DEPLOYMENT.md](WINDOWS_DEPLOYMENT.md) - Windows-specific deployment
 - [DOCKER.md](DOCKER.md) - Docker configuration details
 - [TESTING_GUIDE.md](TESTING_GUIDE.md) - Testing documentation
