@@ -1,6 +1,9 @@
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
+
+// Lazy load the 3D crystal component for better performance
+const HextechCrystal = lazy(() => import('./HextechCrystal').then(m => ({ default: m.HextechCrystal })));
 
 export const HeroSection = () => {
   const ref = useRef<HTMLDivElement>(null);
@@ -51,6 +54,17 @@ export const HeroSection = () => {
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-lol-gold/20 rounded-full blur-3xl animate-pulse-slow" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-lol-blue/20 rounded-full blur-3xl animate-pulse-slow delay-1000" />
         <div className="absolute top-1/2 left-1/2 w-80 h-80 bg-lol-red/10 rounded-full blur-3xl animate-pulse-slow delay-2000" />
+      </div>
+
+      {/* 3D Hextech Crystal - League of Legends themed */}
+      <div className="absolute right-4 md:right-20 top-1/2 transform -translate-y-1/2 w-32 h-32 md:w-48 md:h-48 z-20 pointer-events-auto">
+        <Suspense fallback={
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="w-16 h-16 md:w-24 md:h-24 border-4 border-lol-gold/30 border-t-lol-blue/30 rounded-full animate-spin" />
+          </div>
+        }>
+          <HextechCrystal autoRotate={true} scale={1.2} />
+        </Suspense>
       </div>
 
       {/* Animated Grid Lines */}
