@@ -6,6 +6,7 @@ import asyncio
 import os
 import sys
 from collections.abc import AsyncGenerator
+from unittest.mock import MagicMock
 
 import pytest
 from httpx import ASGITransport, AsyncClient
@@ -61,6 +62,9 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "integration: marks integration tests")
     config.addinivalue_line("markers", "api: marks API endpoint tests")
     config.addinivalue_line("markers", "rss: marks RSS validation tests")
+    config.addinivalue_line("markers", "scraper: marks scraper tests")
+    config.addinivalue_line("markers", "selenium: marks Selenium tests (requires Chrome)")
+    config.addinivalue_line("markers", "redis: marks Redis integration tests")
 
 
 # Scraper test fixtures
@@ -207,3 +211,71 @@ class HTTPError(Exception):
     """Mock HTTP error."""
 
     pass
+
+
+@pytest.fixture
+def sample_rss_entries(mock_rss_feed: str) -> list:
+    """
+    Sample RSS feed entries for testing.
+
+    Args:
+        mock_rss_feed: RSS feed string from mock_rss_feed fixture
+
+    Returns:
+        List of feedparser entry objects
+    """
+    import feedparser
+
+    feed = feedparser.parse(mock_rss_feed)
+    return feed.entries
+
+
+@pytest.fixture
+def sample_scraping_config():
+    """
+    Sample ScrapingConfig for testing scrapers.
+
+    Returns:
+        ScrapingConfig object with typical values
+    """
+    from src.scrapers.base import ScrapingConfig, ScrapingDifficulty
+
+    return ScrapingConfig(
+        source_id="lol",
+        base_url="https://www.leagueoflegends.com/en-us/news/",
+        difficulty=ScrapingDifficulty.EASY,
+        rate_limit_seconds=1.0,
+        timeout_seconds=30,
+    )
+
+
+@pytest.fixture
+def mock_robots_parser() -> MagicMock:
+    """
+    Mock robots.txt parser for scraper testing.
+
+    Returns:
+        MagicMock that allows all requests
+    """
+    mock_parser = MagicMock()
+    mock_parser.can_fetch.return_value = True
+    return mock_parser
+
+
+@pytest.fixture
+def mock_httpx_client() -> MagicMock:
+    """
+    Mock httpx.AsyncClient for HTTP requests in scrapers.
+
+    Returns:
+        MagicMock configured as an httpx.AsyncClient
+    """
+    mock_client = MagicMock()
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.text = "<html><body><article>Test</article></body></html>"
+    mock_response.content = b"<html><body><article>Test</article></body></html>"
+    mock_response.raise_for_status = MagicMock()
+    mock_client.get.return_value = mock_response
+    mock_client.is_closed = False
+    return mock_client
