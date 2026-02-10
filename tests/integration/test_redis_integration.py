@@ -31,7 +31,7 @@ def redis_available() -> bool:
 pytestmark = [
     pytest.mark.skipif(
         not redis_available(),
-        reason="Redis not available - set TEST_REDIS_URL or start Redis with docker-compose up -d redis"
+        reason="Redis not available - set TEST_REDIS_URL or start Redis with docker-compose up -d redis",
     ),
     pytest.mark.integration,
     pytest.mark.redis,
