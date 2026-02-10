@@ -166,39 +166,19 @@ class TestScrapingConfig:
 
 
 class TestBaseScraperInit:
-    """Tests for BaseScraper initialization."""
+    """Tests for BaseScraper initialization via concrete implementation."""
 
     def test_init_creates_scraper(self) -> None:
         """Test that scraper is initialized correctly."""
+        from src.scrapers.rss import RSSScraper
+
         config = ScrapingConfig(
             source_id="dexerto",
             base_url="https://dexerto.com",
             difficulty=ScrapingDifficulty.EASY,
         )
 
-        scraper = BaseScraper.__new__(BaseScraper)
-        scraper.config = config
-        scraper.locale = "en-us"
-        scraper._last_fetch_time = 0
-        scraper._client = None
-
-        # Manually initialize circuit breaker
-        from src.utils.circuit_breaker import get_circuit_breaker_registry
-
-        registry = get_circuit_breaker_registry()
-        from src.utils.circuit_breaker import CircuitBreakerConfig
-
-        cb_config = CircuitBreakerConfig(
-            failure_threshold=5,
-            recovery_timeout=900.0,
-            retry_attempts=3,
-        )
-        scraper._circuit_breaker = registry.get(config.source_id, config=cb_config)
-
-        # Manually initialize robots parser
-        from src.scrapers.robots_txt import get_global_parser
-
-        scraper._robots_parser = get_global_parser()
+        scraper = RSSScraper(config, "en-us")
 
         assert scraper.config == config
         assert scraper.locale == "en-us"
@@ -206,33 +186,29 @@ class TestBaseScraperInit:
 
     def test_init_with_different_locale(self) -> None:
         """Test initialization with different locale."""
+        from src.scrapers.rss import RSSScraper
+
         config = ScrapingConfig(
             source_id="lol",
             base_url="https://lol.com",
             difficulty=ScrapingDifficulty.EASY,
         )
 
-        scraper = BaseScraper.__new__(BaseScraper)
-        scraper.config = config
-        scraper.locale = "ko-kr"
-        scraper._last_fetch_time = 0
-        scraper._client = None
+        scraper = RSSScraper(config, "ko-kr")
 
         assert scraper.locale == "ko-kr"
 
     def test_repr(self) -> None:
         """Test __repr__ method."""
+        from src.scrapers.rss import RSSScraper
+
         config = ScrapingConfig(
             source_id="dexerto",
             base_url="https://dexerto.com",
             difficulty=ScrapingDifficulty.EASY,
         )
 
-        scraper = BaseScraper.__new__(BaseScraper)
-        scraper.config = config
-        scraper.locale = "en-us"
-        scraper._last_fetch_time = 0
-        scraper._client = None
+        scraper = RSSScraper(config, "en-us")
 
         repr_str = repr(scraper)
         assert "dexerto" in repr_str
@@ -250,35 +226,15 @@ class TestClientProperty:
     @pytest.fixture
     def minimal_scraper(self) -> BaseScraper:
         """Create a minimal scraper instance for testing."""
+        from src.scrapers.rss import RSSScraper
+
         config = ScrapingConfig(
             source_id="test",
             base_url="https://test.com",
             difficulty=ScrapingDifficulty.EASY,
         )
 
-        scraper = BaseScraper.__new__(BaseScraper)
-        scraper.config = config
-        scraper.locale = "en-us"
-        scraper._last_fetch_time = 0
-        scraper._client = None
-
-        from src.utils.circuit_breaker import get_circuit_breaker_registry
-
-        registry = get_circuit_breaker_registry()
-        from src.utils.circuit_breaker import CircuitBreakerConfig
-
-        cb_config = CircuitBreakerConfig(
-            failure_threshold=5,
-            recovery_timeout=900.0,
-            retry_attempts=3,
-        )
-        scraper._circuit_breaker = registry.get(config.source_id, config=cb_config)
-
-        from src.scrapers.robots_txt import get_global_parser
-
-        scraper._robots_parser = get_global_parser()
-
-        return scraper
+        return RSSScraper(config, "en-us")
 
     def test_client_created_on_first_access(self, minimal_scraper: BaseScraper) -> None:
         """Test that client is created on first access."""
@@ -525,12 +481,20 @@ class TestRespectRateLimit:
 
     @pytest.mark.asyncio
     async def test_respect_rate_limit_custom_delay(self, concrete_scraper: BaseScraper) -> None:
-        """Test with custom rate limit delay."""
-        concrete_scraper.config.rate_limit_seconds = 2.0
-        concrete_scraper._last_fetch_time = asyncio.get_event_loop().time()
+        """Test with custom rate limit delay via new config."""
+        from src.scrapers.rss import RSSScraper
+
+        config = ScrapingConfig(
+            source_id="test",
+            base_url="https://test.com",
+            difficulty=ScrapingDifficulty.EASY,
+            rate_limit_seconds=2.0,
+        )
+        scraper = RSSScraper(config, "en-us")
+        scraper._last_fetch_time = asyncio.get_event_loop().time()
 
         with patch("asyncio.sleep") as mock_sleep:
-            await concrete_scraper._respect_rate_limit()
+            await scraper._respect_rate_limit()
 
             # Sleep time should be approximately 2 seconds
             call_args = mock_sleep.call_args[0][0]
@@ -822,14 +786,14 @@ class TestAsyncContextManagement:
         scraper = RSSScraper(config, "en-us")
 
         # Access client to create it
-        _ = scraper.client
+        client = scraper.client
         assert scraper._client is not None
 
         # Exit context
         await scraper.__aexit__(None, None, None)
 
-        # Client should be closed
-        assert scraper._client is None
+        # Client should be closed (aclose() was called)
+        assert scraper._client.is_closed
 
     @pytest.mark.asyncio
     async def test_context_manager_usage(self) -> None:
@@ -848,7 +812,7 @@ class TestAsyncContextManagement:
             assert scraper._client is not None
 
         # After exiting, client should be closed
-        assert scraper._client is None
+        assert scraper._client.is_closed
 
 
 # =============================================================================
