@@ -86,9 +86,10 @@ if [ -n "$STAGED_SRC_FILES" ]; then
 fi
 
 # 4. Run quick smoke tests (critical path validation only)
-print_info "Running smoke tests (critical path validation)..."
+# Note: Exclude e2e smoke tests that require running server
+print_info "Running smoke tests (critical path validation, excluding e2e)..."
 if command -v uv > /dev/null 2>&1; then
-    if ! uv run pytest -m smoke -v --tb=short; then
+    if ! uv run pytest -m "smoke and not e2e" -v --tb=short; then
         print_error "Smoke tests failed"
         exit 1
     fi
