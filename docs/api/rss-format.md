@@ -19,7 +19,7 @@ Documentation of the RSS 2.0 feed structure used by LoL Stonks RSS.
     <link>http://localhost:8000</link>
     <description>Latest League of Legends News</description>
     <language>en-US</language>
-    <lastBuildDate>Mon, 15 Jan 2024 10:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 15 Jan 2025 10:00:00 GMT</lastBuildDate>
     <atom:link href="http://localhost:8000/feed" rel="self" type="application/rss+xml"/>
 
     <!-- Items follow -->
@@ -35,7 +35,7 @@ Documentation of the RSS 2.0 feed structure used by LoL Stonks RSS.
   <link>https://www.leagueoflegends.com/news/champion/vex</link>
   <description>Meet Vex, League's newest mid-lane mage...</description>
   <guid isPermaLink="true">https://www.leagueoflegends.com/news/champion/vex</guid>
-  <pubDate>Mon, 15 Jan 2024 09:00:00 GMT</pubDate>
+  <pubDate>Mon, 15 Jan 2025 09:00:00 GMT</pubDate>
   <category>Champions</category>
   <category>Game Updates</category>
 </item>
@@ -66,8 +66,8 @@ Documentation of the RSS 2.0 feed structure used by LoL Stonks RSS.
 | Element | Description | Example |
 |---------|-------------|---------|
 | `language` | Feed language | en-US |
-| `copyright` | Copyright notice | © 2024 Riot Games |
-| `lastBuildDate` | Last build date | Mon, 15 Jan 2024... |
+| `copyright` | Copyright notice | © 2025 Riot Games |
+| `lastBuildDate` | Last build date | Mon, 15 Jan 2025... |
 | `category` | Feed category | Gaming |
 | `ttl` | Cache TTL in minutes | 60 |
 
@@ -76,7 +76,7 @@ Documentation of the RSS 2.0 feed structure used by LoL Stonks RSS.
 | Element | Description | Example |
 |---------|-------------|---------|
 | `guid` | Unique identifier | Article URL or GUID |
-| `pubDate` | Publication date | Mon, 15 Jan 2024... |
+| `pubDate` | Publication date | Mon, 15 Jan 2025... |
 | `category` | Article categories | Champions, Updates |
 | `author` | Article author | author@example.com |
 | `enclosure` | Media attachment | Image, audio, video |
@@ -115,7 +115,7 @@ Each article includes:
     <link>http://localhost:8000</link>
     <description>Latest League of Legends News</description>
     <language>en-US</language>
-    <lastBuildDate>Mon, 15 Jan 2024 10:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 15 Jan 2025 10:00:00 GMT</lastBuildDate>
     <atom:link href="http://localhost:8000/feed" rel="self" type="application/rss+xml"/>
 
     <item>
@@ -123,7 +123,7 @@ Each article includes:
       <link>https://www.leagueoflegends.com/news/patch-14-1</link>
       <description>Discover all the changes coming in Patch 14.1...</description>
       <guid isPermaLink="true">https://www.leagueoflegends.com/news/patch-14-1</guid>
-      <pubDate>Mon, 15 Jan 2024 09:00:00 GMT</pubDate>
+      <pubDate>Mon, 15 Jan 2025 09:00:00 GMT</pubDate>
       <category>Patch Notes</category>
       <category>Game Updates</category>
     </item>
@@ -133,7 +133,7 @@ Each article includes:
       <link>https://www.leagueoflegends.com/news/skins/cosmic-fury</link>
       <description>Explore the new Cosmic Fury skin line...</description>
       <guid isPermaLink="true">https://www.leagueoflegends.com/news/skins/cosmic-fury</guid>
-      <pubDate>Sun, 14 Jan 2024 15:00:00 GMT</pubDate>
+      <pubDate>Sun, 14 Jan 2025 15:00:00 GMT</pubDate>
       <category>Skins</category>
       <category>Cosmetics</category>
     </item>
@@ -198,7 +198,7 @@ curl http://localhost:8000/feed | xmllint --format -
 
 RFC 822 format:
 ```
-Mon, 15 Jan 2024 10:00:00 GMT
+Mon, 15 Jan 2025 10:00:00 GMT
 ```
 
 ### Character Encoding

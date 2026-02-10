@@ -1912,7 +1912,7 @@ Have an idea to improve the GitHub Pages integration?
 
 ## Related Documentation
 
-- [GitHub Pages Quick Start](../GITHUB_PAGES_QUICKSTART.md) - 5-minute setup guide
+- [GitHub Pages Setup](SETUP_GITHUB_PAGES.md) - Step-by-step GitHub Pages configuration
 - [GitHub Pages Setup](SETUP_GITHUB_PAGES.md) - Step-by-step GitHub Pages configuration
 - [GitHub Pages News Automation](GITHUB_PAGES_NEWS.md) - Complete automation documentation
 - [Windows Deployment Guide](WINDOWS_DEPLOYMENT.md) - Full Windows Server deployment
