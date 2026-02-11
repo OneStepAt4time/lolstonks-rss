@@ -2,6 +2,13 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Article, ArticleFilters } from '../types/article';
 import type { Feed, FeedsResponse } from '../types/feed';
+import {
+  demoArticles,
+  filterDemoArticles,
+  getDemoCategories,
+  getDemoSources,
+  getDemoLocales,
+} from '../lib/demo-data';
 
 interface ArticleStore {
   articles: Article[];
@@ -78,9 +85,14 @@ export const useStore = create<
           const data = await response.json();
           set({ articles: data, filteredArticles: data, articlesLoading: false });
         } catch (error) {
+          // Fallback to demo data when API is unavailable
+          console.warn('[Store] API unavailable, using demo data:', error);
+          const demoData = filterDemoArticles(demoArticles, filters || {});
           set({
-            error: error instanceof Error ? error.message : 'Unknown error',
+            articles: demoData,
+            filteredArticles: demoData,
             articlesLoading: false,
+            error: null, // Don't treat fallback as error
           });
         }
       },
@@ -122,8 +134,23 @@ export const useStore = create<
           const data: FeedsResponse = await response.json();
           set({ feeds: data.feeds, feedsResponse: data, feedsLoading: false });
         } catch (error) {
-          console.error('Error fetching feeds:', error);
-          set({ feedsLoading: false });
+          // Fallback to demo feeds when API is unavailable
+          console.warn('[Store] API unavailable, using demo feeds:', error);
+          const demoFeeds: FeedsResponse = {
+            supported_locales: getDemoLocales(),
+            available_locales: getDemoLocales(),
+            sources: getDemoSources(),
+            categories: getDemoCategories(),
+            feeds: getDemoLocales().map(locale => ({
+              type: 'locale' as const,
+              url: `/feed/${locale}.xml`,
+              locale,
+            })),
+            base_url: import.meta.env.PROD
+              ? 'https://onestepat4time.github.io/lolstonks-rss'
+              : 'http://localhost:8000',
+          };
+          set({ feeds: demoFeeds.feeds, feedsResponse: demoFeeds, feedsLoading: false });
         }
       },
 
