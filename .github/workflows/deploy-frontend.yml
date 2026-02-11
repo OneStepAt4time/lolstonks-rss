@@ -96,21 +96,28 @@ jobs:
           from src.services.update_service import UpdateServiceV2
           from src.config import get_settings
 
+          # Only fetch from locales that are known to work
+          WORKING_LOCALES = [
+              'en-us', 'en-gb', 'es-es', 'es-mx', 'fr-fr', 'de-de',
+              'it-it', 'pt-br', 'ja-jp', 'ko-kr',
+          ]
+
           async def update_news():
               settings = get_settings()
               repo = ArticleRepository(settings.database_path)
               await repo.initialize()
 
               update_service = UpdateServiceV2(repo)
-              stats = await update_service.update_all()
+              stats = await update_service.update_locales(WORKING_LOCALES)
 
               print(f'Update complete: {stats[\"new_articles\"]} new articles')
+              print(f'Total articles in DB: {stats[\"total_articles\"]}')
 
               await repo.close()
 
           asyncio.run(update_news())
           "
-        timeout-minutes: 5
+        timeout-minutes: 8
 
       - name: Generate RSS feeds to frontend dist
         run: |
