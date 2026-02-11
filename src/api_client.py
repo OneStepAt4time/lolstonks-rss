@@ -39,6 +39,27 @@ class LoLNewsAPIClient:
         self.base_url = base_url or settings.lol_news_base_url
         self.cache = cache or TTLCache(default_ttl_seconds=settings.build_id_cache_seconds)
 
+    def _format_accept_language(self, locale: str) -> str:
+        """
+        Format locale code for Accept-Language header.
+
+        Converts locale format (e.g., "zh-cn" -> "zh-CN") for proper
+        content negotiation with the LoL website.
+
+        Args:
+            locale: Locale code in lowercase format (e.g., "en-us", "zh-cn")
+
+        Returns:
+            Formatted Accept-Language header value (e.g., "en-US", "zh-CN")
+        """
+        # Split locale into language and region
+        parts = locale.lower().split("-")
+        if len(parts) == 2:
+            language, region = parts
+            return f"{language}-{region.upper()}"
+        # Fallback for unexpected format
+        return locale
+
     async def get_build_id(self, locale: str = "en-us") -> str:
         """
         Extract Next.js buildId from HTML.
@@ -62,11 +83,16 @@ class LoLNewsAPIClient:
             logger.debug(f"Using cached buildId for {locale}: {cached}")
             return str(cached)
 
-        # Fetch HTML page
+        # Fetch HTML page with locale-specific headers
         async with httpx.AsyncClient(timeout=settings.http_timeout_seconds) as client:
             url = f"{self.base_url}/{locale}/news/"
             logger.info(f"Fetching buildId from: {url}")
-            response = await client.get(url, follow_redirects=True)
+            # Add Accept-Language header for locale-specific content negotiation
+            headers = {
+                "Accept-Language": self._format_accept_language(locale),
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            }
+            response = await client.get(url, headers=headers, follow_redirects=True)
             response.raise_for_status()
 
         # Extract buildId using regex
@@ -104,10 +130,15 @@ class LoLNewsAPIClient:
             # Construct API URL
             api_url = f"{self.base_url}/_next/data/{build_id}/{locale}/news.json"
 
-            # Fetch JSON data
+            # Fetch JSON data with locale-specific headers
             async with httpx.AsyncClient(timeout=settings.http_timeout_seconds) as client:
                 logger.info(f"Fetching news from: {api_url}")
-                response = await client.get(api_url, follow_redirects=True)
+                # Add Accept-Language header for locale-specific content negotiation
+                headers = {
+                    "Accept-Language": self._format_accept_language(locale),
+                    "Accept": "application/json,text/html,application/xhtml+xml,*/*",
+                }
+                response = await client.get(api_url, headers=headers, follow_redirects=True)
 
                 # If 404, buildID might be stale - invalidate cache and retry once
                 if response.status_code == 404:
@@ -119,7 +150,7 @@ class LoLNewsAPIClient:
                     build_id = await self.get_build_id(locale)
                     api_url = f"{self.base_url}/_next/data/{build_id}/{locale}/news.json"
                     logger.info(f"Retrying with fresh buildId: {api_url}")
-                    response = await client.get(api_url, follow_redirects=True)
+                    response = await client.get(api_url, headers=headers, follow_redirects=True)
 
                 response.raise_for_status()
                 data = response.json()

@@ -43,6 +43,86 @@ jobs:
           # Check build output
           ls -la dist/
 
+      # RSS Feed Generation
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install UV package manager
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Cache UV dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/uv
+            .venv
+          key: ${{ runner.os }}-uv-${{ hashFiles('pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-uv-
+
+      - name: Install Python dependencies with UV
+        run: uv sync
+
+      - name: Create data directory
+        run: mkdir -p data
+
+      - name: Initialize database
+        run: |
+          uv run python -c "
+          import asyncio
+          from src.database import ArticleRepository
+          from src.config import get_settings
+
+          async def init_db():
+              settings = get_settings()
+              repo = ArticleRepository(settings.database_path)
+              await repo.initialize()
+              await repo.close()
+              print('Database initialized')
+
+          asyncio.run(init_db())
+          "
+
+      - name: Fetch latest news from LoL API
+        run: |
+          uv run python -c "
+          import asyncio
+          import os
+          from src.database import ArticleRepository
+          from src.services.update_service import UpdateServiceV2
+          from src.config import get_settings
+
+          async def update_news():
+              settings = get_settings()
+              repo = ArticleRepository(settings.database_path)
+              await repo.initialize()
+
+              update_service = UpdateServiceV2(repo)
+              stats = await update_service.update_all()
+
+              print(f'Update complete: {stats[\"new_articles\"]} new articles')
+
+              await repo.close()
+
+          asyncio.run(update_news())
+          "
+        timeout-minutes: 5
+
+      - name: Generate RSS feeds to frontend dist
+        run: |
+          uv run python scripts/generate_rss_feeds.py --output ./frontend/dist --limit 100
+
+      - name: Verify RSS feeds in dist
+        run: |
+          echo "Checking RSS feed files in frontend/dist:"
+          ls -la ./frontend/dist/
+          echo "Feed subdirectory:"
+          ls -la ./frontend/dist/feed/ || echo "No feed subdirectory found"
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
