@@ -30,6 +30,11 @@ from src.utils.metrics import (
     update_scraper_last_success,
 )
 
+# Sources that have working fetch implementations:
+# - "lol" uses LoLNewsAPIClient (special handling)
+# - Sources in ALL_SCRAPER_SOURCES have scraper implementations
+SCRAPER_ENABLED_SOURCES: set[str] = {"lol"} | set(ALL_SCRAPER_SOURCES)
+
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
@@ -459,7 +464,17 @@ class UpdateServiceV2:
             List of UpdateTask instances sorted by priority
         """
         locales = locales or RIOT_LOCALES
-        source_ids = source_ids or list(ArticleSource.ALL_SOURCES.keys())
+        # Only include sources that have working scraper implementations
+        # When source_ids is explicitly provided, filter to scraper-enabled sources
+        if source_ids is None:
+            source_ids = list(SCRAPER_ENABLED_SOURCES)
+        else:
+            # Filter explicitly passed source_ids to only scraper-enabled sources
+            original_count = len(source_ids)
+            source_ids = [s for s in source_ids if s in SCRAPER_ENABLED_SOURCES]
+            if len(source_ids) < original_count:
+                skipped = original_count - len(source_ids)
+                logger.info(f"Filtered out {skipped} source(s) without scraper implementations")
 
         tasks: list[UpdateTask] = []
 
