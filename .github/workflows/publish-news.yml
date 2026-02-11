@@ -194,7 +194,7 @@ jobs:
 
       - name: Upload artifact for GitHub Pages
         if: github.event_name == 'workflow_dispatch' || steps.fetch_news.outputs.new_articles != '0'
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: '_site'
 
