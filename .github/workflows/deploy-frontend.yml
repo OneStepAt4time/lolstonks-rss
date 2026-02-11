@@ -96,7 +96,8 @@ jobs:
           from src.services.update_service import UpdateServiceV2
           from src.config import get_settings
 
-          # Only fetch from locales that are known to work
+          # Only fetch from the official Riot API (lol source)
+          # HTML scrapers are too slow and unreliable for deployment
           WORKING_LOCALES = [
               'en-us', 'en-gb', 'es-es', 'es-mx', 'fr-fr', 'de-de',
               'it-it', 'pt-br', 'ja-jp', 'ko-kr',
@@ -108,16 +109,17 @@ jobs:
               await repo.initialize()
 
               update_service = UpdateServiceV2(repo)
-              stats = await update_service.update_locales(WORKING_LOCALES)
+              # Only use 'lol' source (official Riot API) - it's fast and reliable
+              stats = await update_service.update_source('lol', WORKING_LOCALES)
 
               print(f'Update complete: {stats[\"new_articles\"]} new articles')
-              print(f'Total articles in DB: {stats[\"total_articles\"]}')
+              print(f'Total articles in DB: {stats.get(\"total_articles\", 0)}')
 
               await repo.close()
 
           asyncio.run(update_news())
           "
-        timeout-minutes: 8
+        timeout-minutes: 3
 
       - name: Generate RSS feeds to frontend dist
         run: |
