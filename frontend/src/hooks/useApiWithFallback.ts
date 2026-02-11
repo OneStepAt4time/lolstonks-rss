@@ -148,22 +148,22 @@ export function useApiWithFeeds(): UseApiWithFeedsResult {
         feeds: [
           {
             type: 'locale',
-            url: '/rss/en-us.xml',
+            url: '/feed/en-us.xml',
             locale: 'en-us',
           },
           {
             type: 'locale',
-            url: '/rss/ja-jp.xml',
+            url: '/feed/ja-jp.xml',
             locale: 'ja-jp',
           },
           {
             type: 'locale',
-            url: '/rss/ko-kr.xml',
+            url: '/feed/ko-kr.xml',
             locale: 'ko-kr',
           },
           {
             type: 'locale',
-            url: '/rss/zh-cn.xml',
+            url: '/feed/zh-cn.xml',
             locale: 'zh-cn',
           },
         ],

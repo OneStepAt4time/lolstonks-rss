@@ -900,7 +900,7 @@ async def list_available_feeds() -> dict[str, Any]:
 
         # Per-locale feeds
         for locale in supported_locales:
-            feeds.append({"type": "locale", "locale": locale, "url": f"/rss/{locale}.xml"})
+            feeds.append({"type": "locale", "locale": locale, "url": f"/feed/{locale}.xml"})
 
         # Per-source per-locale feeds
         for source in all_sources:
@@ -910,7 +910,7 @@ async def list_available_feeds() -> dict[str, Any]:
                         "type": "source_locale",
                         "source": source,
                         "locale": locale,
-                        "url": f"/rss/{locale}/{source}.xml",
+                        "url": f"/feed/{locale}/{source}.xml",
                     }
                 )
 
@@ -922,7 +922,7 @@ async def list_available_feeds() -> dict[str, Any]:
                         "type": "category_locale",
                         "category": category,
                         "locale": locale,
-                        "url": f"/rss/{locale}/category/{category}.xml",
+                        "url": f"/feed/{locale}/category/{category}.xml",
                     }
                 )
 
