@@ -3,9 +3,9 @@
  *
  * This script generates a comprehensive sitemap including:
  * - Main pages (/, /feeds)
- * - All locale feeds (/rss/{locale}.xml)
- * - All category feeds (/rss/{locale}/category/{category}.xml)
- * - All source feeds (/rss/{locale}/{source}.xml)
+ * - All locale feeds (/feed/{locale}.xml)
+ * - All category feeds (/feed/{locale}/category/{category}.xml)
+ * - All source feeds (/feed/{locale}/{source}.xml)
  */
 
 import { writeFileSync } from 'fs';
@@ -90,7 +90,7 @@ function generateSitemapEntries(): SitemapEntry[] {
   // Locale feeds (high priority, updated hourly)
   LOCALES.forEach((locale) => {
     entries.push({
-      url: `${SITE_URL}/rss/${locale}.xml`,
+      url: `${SITE_URL}/feed/${locale}.xml`,
       lastModified: currentDate,
       changeFrequency: 'hourly',
       priority: 0.8,
@@ -101,7 +101,7 @@ function generateSitemapEntries(): SitemapEntry[] {
   LOCALES.forEach((locale) => {
     CATEGORIES.forEach((category) => {
       entries.push({
-        url: `${SITE_URL}/rss/${locale}/category/${category}.xml`,
+        url: `${SITE_URL}/feed/${locale}/category/${category}.xml`,
         lastModified: currentDate,
         changeFrequency: 'hourly',
         priority: 0.7,
@@ -113,7 +113,7 @@ function generateSitemapEntries(): SitemapEntry[] {
   LOCALES.forEach((locale) => {
     SOURCES.forEach((source) => {
       entries.push({
-        url: `${SITE_URL}/rss/${locale}/${source}.xml`,
+        url: `${SITE_URL}/feed/${locale}/${source}.xml`,
         lastModified: currentDate,
         changeFrequency: 'hourly',
         priority: 0.6,
