@@ -30,8 +30,31 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
-        // Disable manual chunks to avoid module loading issues
-        // Everything will be bundled together for now
+        // Smart code splitting strategy for React 19 + Framer Motion compatibility
+        manualChunks: (id) => {
+          // Vendor chunks - split large libraries for better caching
+          if (id.includes('node_modules')) {
+            // React + Framer Motion bundle (must be together to fix loading order)
+            if (id.includes('react') || id.includes('react-dom') ||
+                id.includes('framer-motion') || id.includes('scheduler')) {
+              return 'react-vendor';
+            }
+            // Three.js and related (large, used sparingly for 3D)
+            if (id.includes('@react-three') || id.includes('three')) {
+              return 'three-vendor';
+            }
+            // React Router (can be lazy loaded)
+            if (id.includes('react-router')) {
+              return 'router';
+            }
+            // Other vendors
+            return 'vendor';
+          }
+        },
+        // Chunk file naming for better caching
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
       },
     },
     // Optimize assets
