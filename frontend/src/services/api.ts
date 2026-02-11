@@ -36,7 +36,7 @@ export const api = {
    * Get RSS feed URL for a specific combination
    */
   getFeedUrl(locale: string, category?: string, source?: string): string {
-    const baseUrl = `${API_BASE}/rss`;
+    const baseUrl = `${API_BASE}/feed`;
     if (category) {
       return `${baseUrl}/${locale}/category/${category}.xml`;
     }
