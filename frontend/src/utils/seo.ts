@@ -29,8 +29,8 @@ export interface ArticleStructuredData {
 const SITE_NAME = 'LoL Stonks RSS';
 const DEFAULT_DESCRIPTION =
   'Get the latest League of Legends news from Riot Games in your favorite RSS reader. Available in 20 languages with customizable feeds by source and category.';
-const DEFAULT_OG_IMAGE = '/lolstonksrss/og-image.png';
-const SITE_URL = 'https://onestepat4time.github.io/lolstonksrss';
+const DEFAULT_OG_IMAGE = '/lolstonks-rss/og-image.png';
+const SITE_URL = 'https://onestepat4time.github.io/lolstonks-rss';
 
 /**
  * Generate meta tags for the document head

@@ -14,7 +14,7 @@
 /**
  * Base URL for RSS feeds
  */
-const BASE_URL = 'https://onestepat4time.github.io/lolstonksrss';
+const BASE_URL = 'https://onestepat4time.github.io/lolstonks-rss';
 
 /**
  * Supported locales (20 Riot Games locales)

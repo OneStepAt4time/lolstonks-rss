@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { Rss, Copy, Check, ExternalLink, Globe, Newspaper, ChevronDown, SearchX, Search } from 'lucide-react';
 import {
   getFeedCatalog,
   searchFeeds,
@@ -105,8 +106,8 @@ export const AllFeedsPage = () => {
     `or source (${catalog.stats.sourceCount} sources). No API required.`;
 
   const breadcrumbs = [
-    { name: 'Home', url: 'https://onestepat4time.github.io/lolstonksrss/' },
-    { name: 'All Feeds', url: 'https://onestepat4time.github.io/lolstonksrss/all-feeds' }
+    { name: 'Home', url: 'https://onestepat4time.github.io/lolstonks-rss/' },
+    { name: 'All Feeds', url: 'https://onestepat4time.github.io/lolstonks-rss/all-feeds' }
   ];
 
   return (
@@ -114,7 +115,7 @@ export const AllFeedsPage = () => {
       <MetaTags
         title={seoTitle}
         description={seoDescription}
-        canonicalUrl="https://onestepat4time.github.io/lolstonksrss/all-feeds"
+        canonicalUrl="https://onestepat4time.github.io/lolstonks-rss/all-feeds"
       />
       <StructuredData data={generateBreadcrumbStructuredData(breadcrumbs)} />
 
@@ -125,8 +126,9 @@ export const AllFeedsPage = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-8"
         >
-          <h1 className="text-4xl md:text-5xl font-bold text-lol-gold mb-4">
-            📋 All RSS Feeds
+          <h1 className="text-4xl md:text-5xl font-bold text-lol-gold mb-4 flex items-center justify-center gap-3">
+            <Rss className="w-8 h-8" />
+            All RSS Feeds
           </h1>
           <p className="text-lg text-lol-blue mb-2">
             Complete catalog of <span className="text-lol-gold font-semibold">{catalog.stats.totalFeeds}</span> available feeds
@@ -144,16 +146,14 @@ export const AllFeedsPage = () => {
           className="card p-6 space-y-4 mb-8"
         >
           {/* Search Bar */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Search Feeds
-            </label>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by URL, locale, category, or source..."
-              className="w-full px-4 py-3 bg-lol-dark border border-lol-gold/20 rounded-lg
+              className="w-full pl-10 pr-4 py-3 bg-[#0a0e17] border border-white/[0.08] rounded-lg
                        focus:outline-none focus:border-lol-gold/50 text-white placeholder-gray-500
                        transition-colors"
             />
@@ -219,9 +219,9 @@ export const AllFeedsPage = () => {
                          focus:outline-none focus:border-lol-gold/50 text-white"
               >
                 <option value="">All Types</option>
-                <option value="locale">🌍 Locale Feeds</option>
-                <option value="category_locale">📂 Category Feeds</option>
-                <option value="source">📰 Source Feeds</option>
+                <option value="locale">Locale Feeds</option>
+                <option value="category_locale">Category Feeds</option>
+                <option value="source">Source Feeds</option>
               </select>
             </div>
           </div>
@@ -254,7 +254,7 @@ export const AllFeedsPage = () => {
             className="mb-8"
           >
             <h2 className="text-2xl font-bold text-lol-blue mb-4 flex items-center gap-2">
-              <span>📰</span>
+              <Newspaper className="w-6 h-6" />
               Source Feeds
               <span className="text-sm font-normal text-gray-400">({sourceFeeds.length})</span>
             </h2>
@@ -275,7 +275,7 @@ export const AllFeedsPage = () => {
         {/* Locale Feeds by Region */}
         <div className="space-y-6">
           <h2 className="text-2xl font-bold text-lol-blue flex items-center gap-2">
-            <span>🌍</span>
+            <Globe className="w-6 h-6" />
             Locale Feeds
             <span className="text-sm font-normal text-gray-400">
               ({filteredFeeds.length - sourceFeeds.length})
@@ -304,7 +304,7 @@ export const AllFeedsPage = () => {
             animate={{ opacity: 1 }}
             className="flex flex-col items-center justify-center py-20"
           >
-            <div className="text-6xl mb-4">🔍</div>
+            <SearchX className="w-12 h-12 text-gray-600 mb-4" />
             <h2 className="text-xl font-bold text-lol-gold mb-2">No Feeds Found</h2>
             <p className="text-gray-400 mb-4">Try adjusting your search or filters</p>
             <button onClick={clearAllFilters} className="btn-primary">
@@ -373,9 +373,7 @@ const LocaleFeedGroup = ({
           transition={{ duration: 0.2 }}
           className="text-lol-gold"
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
+          <ChevronDown className="w-5 h-5" />
         </motion.div>
       </button>
 
@@ -484,17 +482,7 @@ const FeedCard = ({ feed, copiedUrl, onCopy, index }: FeedCardProps) => {
         <div className="flex items-center gap-2">
           <ActionButton
             onClick={() => onCopy(feed.url)}
-            icon={
-              copiedUrl === feed.url ? (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              ) : (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-              )
-            }
+            icon={copiedUrl === feed.url ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
             title={copiedUrl === feed.url ? 'Copied!' : 'Copy URL'}
             bgColorClass={copiedUrl === feed.url ? 'bg-green-500/10 text-green-400' : 'bg-lol-gold/10 text-lol-gold'}
           />
@@ -502,12 +490,10 @@ const FeedCard = ({ feed, copiedUrl, onCopy, index }: FeedCardProps) => {
             href={feed.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-3 bg-lol-blue/10 text-lol-blue rounded-lg hover:bg-lol-blue/20 transition-all"
+            className="p-3 bg-hextech/10 text-hextech rounded-lg hover:bg-hextech/20 transition-all"
             title="Open feed"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
+            <ExternalLink className="w-5 h-5" />
           </a>
         </div>
       </div>
@@ -544,17 +530,7 @@ const CompactFeedCard = ({ feed, copiedUrl, onCopy, index }: FeedCardProps) => {
         <div className="flex items-center gap-1">
           <ActionButton
             onClick={() => onCopy(feed.url)}
-            icon={
-              copiedUrl === feed.url ? (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              ) : (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-              )
-            }
+            icon={copiedUrl === feed.url ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
             title={copiedUrl === feed.url ? 'Copied!' : 'Copy'}
             bgColorClass={copiedUrl === feed.url ? 'bg-green-500/10 text-green-400' : 'bg-lol-gold/10 text-lol-gold'}
             compact
@@ -563,12 +539,10 @@ const CompactFeedCard = ({ feed, copiedUrl, onCopy, index }: FeedCardProps) => {
             href={feed.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-2 bg-lol-blue/10 text-lol-blue rounded hover:bg-lol-blue/20 transition-all"
+            className="p-2 bg-hextech/10 text-hextech rounded hover:bg-hextech/20 transition-all"
             title="Open feed"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
+            <ExternalLink className="w-4 h-4" />
           </a>
         </div>
       </div>

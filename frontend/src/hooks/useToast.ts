@@ -1,36 +1,50 @@
-import { create } from 'zustand';
+/**
+ * Toast hook - thin wrapper around the main store's toast system.
+ * Provides a consistent API for showing toast notifications.
+ */
+
+import { useStore } from '../store';
+import { useCallback } from 'react';
 
 export type ToastVariant = 'success' | 'error' | 'warning' | 'info';
 
-interface Toast {
+export interface Toast {
   id: string;
   message: string;
   variant: ToastVariant;
 }
 
-interface ToastStore {
-  toasts: Toast[];
-  showToast: (message: string, variant?: ToastVariant) => void;
-  removeToast: (id: string) => void;
-  clearToasts: () => void;
-}
-
 let toastId = 0;
 
-export const useToast = create<ToastStore>((set) => ({
-  toasts: [],
-  showToast: (message, variant = 'info') => {
+/**
+ * Hook for managing toast notifications.
+ * Uses a local array of toasts with auto-dismiss.
+ */
+export function useToast() {
+  const store = useStore();
+
+  const showToast = useCallback((message: string, variant: ToastVariant = 'info') => {
     const id = `toast-${++toastId}`;
-    set((state) => ({
-      toasts: [...state.toasts, { id, message, variant }],
-    }));
-  },
-  removeToast: (id) => {
-    set((state) => ({
-      toasts: state.toasts.filter((toast) => toast.id !== id),
-    }));
-  },
-  clearToasts: () => {
-    set({ toasts: [] });
-  },
-}));
+    store.showToast(message, variant === 'warning' ? 'info' : variant);
+    return id;
+  }, [store]);
+
+  const removeToast = useCallback((_id: string) => {
+    store.hideToast();
+  }, [store]);
+
+  const clearToasts = useCallback(() => {
+    store.hideToast();
+  }, [store]);
+
+  return {
+    toasts: store.toast ? [{
+      id: 'store-toast',
+      message: store.toast.message,
+      variant: (store.toast.type || 'info') as ToastVariant,
+    }] : [] as Toast[],
+    showToast,
+    removeToast,
+    clearToasts,
+  };
+}

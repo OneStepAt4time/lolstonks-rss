@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import type { ComponentType, ErrorInfo, ReactNode } from 'react';
 import { Component, useState } from 'react';
+import { AlertTriangle } from 'lucide-react';
 
 interface ErrorBoundaryProps {
   /**
@@ -42,7 +43,7 @@ export interface FallbackProps {
   resetError: () => void;
 }
 
-const DEFAULT_REPORT_URL = 'https://github.com/OneStepAt4time/lolstonksrss/issues/new';
+const DEFAULT_REPORT_URL = 'https://github.com/OneStepAt4time/lolstonks-rss/issues/new';
 
 /**
  * Default Fallback Component
@@ -62,23 +63,11 @@ const DefaultFallback: ComponentType<FallbackProps> = ({
         transition={{ duration: 0.4 }}
       >
         {/* Error Icon */}
-        <motion.div
-          className="mx-auto mb-6 relative"
-          initial={{ rotate: 0 }}
-          animate={{ rotate: [0, -10, 10, -10, 0] }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <div className="w-24 h-24 mx-auto rounded-full bg-rose-500/10 border-2 border-rose-500/30 flex items-center justify-center">
-            <span className="text-5xl" role="img" aria-label="Error">
-              ⚠️
-            </span>
+        <div className="mx-auto mb-6">
+          <div className="w-20 h-20 mx-auto rounded-full bg-rose-500/10 border-2 border-rose-500/30 flex items-center justify-center">
+            <AlertTriangle className="w-10 h-10 text-rose-400" />
           </div>
-          <motion.div
-            className="absolute inset-0 rounded-full bg-rose-500/20"
-            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0, 0.3] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          />
-        </motion.div>
+        </div>
 
         {/* Error Title */}
         <h1 className="text-2xl font-display font-bold text-rose-400 mb-2">

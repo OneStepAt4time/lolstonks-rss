@@ -1,36 +1,35 @@
 import { NavLink } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { Home, Rss, Globe, LayoutGrid } from 'lucide-react';
 
 export const Navigation = () => {
   const navItems = [
-    { path: '/', label: 'Home' },
-    { path: '/feeds', label: 'Browse Feeds' },
-    { path: '/all-feeds', label: 'All Feeds' },
-    { path: '/compare', label: 'Compare' },
+    { path: '/', label: 'Home', icon: Home },
+    { path: '/feeds', label: 'Browse Feeds', icon: Rss },
+    { path: '/all-feeds', label: 'All Feeds', icon: Globe },
+    { path: '/compare', label: 'Compare', icon: LayoutGrid },
   ];
 
   return (
-    <nav className="hidden md:flex items-center gap-6">
-      {navItems.map((item) => (
-        <NavLink
-          key={item.path}
-          to={item.path}
-          className={({ isActive }) =>
-            `px-3 py-2 rounded-lg transition-all duration-200 font-display font-medium tracking-wide ${
-              isActive
-                ? 'bg-lol-gold/20 text-lol-gold'
-                : 'hover:bg-lol-hover hover:text-lol-gold-light'
-            }`
-          }
-        >
-          <motion.span
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.2 }}
+    <nav className="hidden md:flex items-center gap-1">
+      {navItems.map((item) => {
+        const Icon = item.icon;
+        return (
+          <NavLink
+            key={item.path}
+            to={item.path}
+            className={({ isActive }) =>
+              `flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-colors duration-200 ${
+                isActive
+                  ? 'bg-lol-gold/15 text-lol-gold'
+                  : 'text-gray-400 hover:text-white hover:bg-white/[0.06]'
+              }`
+            }
           >
-            {item.label}
-          </motion.span>
-        </NavLink>
-      ))}
+            <Icon className="w-4 h-4" />
+            <span>{item.label}</span>
+          </NavLink>
+        );
+      })}
     </nav>
   );
 };

@@ -19,27 +19,17 @@ export const HomePage = () => {
         title={seoTitle}
         description={seoDescription}
         ogType="website"
-        canonicalUrl="https://onestepat4time.github.io/lolstonksrss/"
+        canonicalUrl="https://onestepat4time.github.io/lolstonks-rss/"
       />
       <StructuredData data={generateWebsiteStructuredData()} />
 
       <div>
-        {/* Hero Section with Parallax and 3D Hextech Crystal */}
         <HeroSection />
-
-        {/* Quick Stats Section */}
         <QuickStats />
-
-        {/* Feature Highlights Section */}
         <FeatureHighlights />
-
-        {/* Trending Feeds Section */}
         <TrendingFeeds />
-
-        {/* Quick Start Guide */}
         <QuickStartGuide />
 
-        {/* Articles Grid */}
         <div className="container mx-auto px-4 py-12">
           <ArticleGrid />
         </div>
