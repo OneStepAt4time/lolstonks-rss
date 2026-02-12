@@ -13,22 +13,22 @@
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://onestepat4time.github.io/lolstonksrss/" />
+    <meta property="og:url" content="https://onestepat4time.github.io/lolstonks-rss/" />
     <meta property="og:title" content="LoL Stonks RSS - League of Legends News Feeds" />
     <meta property="og:description" content="Get the latest League of Legends news from Riot Games in your favorite RSS reader. Available in 20 languages with customizable feeds by source and category." />
-    <meta property="og:image" content="https://onestepat4time.github.io/lolstonksrss/og-image.png" />
+    <meta property="og:image" content="https://onestepat4time.github.io/lolstonks-rss/og-image.png" />
     <meta property="og:site_name" content="LoL Stonks RSS" />
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://onestepat4time.github.io/lolstonksrss/" />
+    <meta property="twitter:url" content="https://onestepat4time.github.io/lolstonks-rss/" />
     <meta property="twitter:title" content="LoL Stonks RSS - League of Legends News Feeds" />
     <meta property="twitter:description" content="Get the latest League of Legends news from Riot Games in your favorite RSS reader. Available in 20 languages with customizable feeds by source and category." />
-    <meta property="twitter:image" content="https://onestepat4time.github.io/lolstonksrss/og-image.png" />
+    <meta property="twitter:image" content="https://onestepat4time.github.io/lolstonks-rss/og-image.png" />
     <meta property="twitter:site" content="@LoLStonks" />
 
     <!-- Canonical URL -->
-    <link rel="canonical" href="https://onestepat4time.github.io/lolstonksrss/" />
+    <link rel="canonical" href="https://onestepat4time.github.io/lolstonks-rss/" />
 
     <!-- Additional SEO -->
     <meta name="robots" content="index, follow" />
@@ -47,6 +47,25 @@
     <link rel="manifest" href="/site.webmanifest" />
   </head>
   <body>
+    <!-- GitHub Pages SPA redirect handler: reads ?/ query from 404.html and restores the route -->
+    <script>
+      (function() {
+        var redirect = sessionStorage.redirect;
+        delete sessionStorage.redirect;
+        if (redirect && redirect !== location.href) {
+          history.replaceState(null, null, redirect);
+        } else {
+          var q = window.location.search;
+          if (q.length > 2 && q[0] === '?' && q[1] === '/') {
+            var path = q.slice(1).split('&')[0].replace(/~and~/g, '&');
+            var hash = window.location.hash;
+            history.replaceState(null, null,
+              window.location.pathname + path + (hash || '')
+            );
+          }
+        }
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
