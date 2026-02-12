@@ -12,7 +12,6 @@ import { HomePage } from './pages/HomePage';
 
 const FeedsPage = lazy(() => import('./pages/FeedsPage').then(m => ({ default: m.FeedsPage })));
 const AllFeedsPage = lazy(() => import('./pages/AllFeedsPage').then(m => ({ default: m.AllFeedsPage })));
-const LocaleComparisonPage = lazy(() => import('./pages/LocaleComparisonPage').then(m => ({ default: m.LocaleComparisonPage })));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
 
 function RouteLoading() {
@@ -43,11 +42,6 @@ function App() {
                 <Route path="/all-feeds" element={
                   <PageTransition>
                     <AllFeedsPage />
-                  </PageTransition>
-                } />
-                <Route path="/compare" element={
-                  <PageTransition>
-                    <LocaleComparisonPage />
                   </PageTransition>
                 } />
                 <Route path="*" element={

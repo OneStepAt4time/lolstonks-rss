@@ -35,6 +35,11 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/all-feeds" className="text-gray-400 hover:text-lol-gold transition-colors">
+                  All Feeds
+                </Link>
+              </li>
+              <li>
                 <a
                   href="/feed.xml"
                   target="_blank"
@@ -81,8 +86,11 @@ export const Footer = () => {
         {/* Bottom Bar */}
         <div className="mt-8 pt-8 border-t border-white/[0.06] text-center text-sm text-gray-500">
           <p>
-            &copy; {currentYear} LoL Stonks RSS. This project is not affiliated with
-            Riot Games.
+            &copy; {currentYear} LoL Stonks RSS. LoL Stonks RSS isn&apos;t endorsed by Riot
+            Games and doesn&apos;t reflect the views or opinions of Riot Games or anyone
+            officially involved in producing or managing Riot Games properties. Riot Games,
+            and all associated properties are trademarks or registered trademarks of Riot
+            Games, Inc.
           </p>
         </div>
       </div>

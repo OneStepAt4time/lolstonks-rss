@@ -8,7 +8,6 @@
  * - Match actual component dimensions
  */
 
-export { ArticleCardSkeleton } from './ArticleCardSkeleton';
 export { FeedCardSkeleton } from './FeedCardSkeleton';
 export {
   LocaleColumnSkeleton,
@@ -17,5 +16,4 @@ export {
 } from './LocaleColumnSkeleton';
 
 // Re-export types
-export type { default as ArticleCardSkeletonProps } from './ArticleCardSkeleton';
 export type { default as FeedCardSkeletonProps } from './FeedCardSkeleton';

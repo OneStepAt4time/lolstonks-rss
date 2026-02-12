@@ -1,7 +1,6 @@
 // UI Components Barrel Export
 export { Button } from './Button';
 export { CopyButton } from './CopyButton';
-export { SubscribeButton } from './SubscribeButton';
 export { Toast, ToastContainer } from './Toast';
 export { ApiStatusIndicator } from './ApiStatusIndicator';
 export { ErrorBoundary } from './ErrorBoundary';

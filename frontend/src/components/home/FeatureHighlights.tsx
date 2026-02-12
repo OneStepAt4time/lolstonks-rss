@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Globe, Filter, Bell, ArrowRight } from 'lucide-react';
+import { Rss, Filter, Bell, ArrowRight } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 interface FeatureCardProps {
@@ -44,10 +44,10 @@ const FeatureCard = ({ icon: Icon, title, description, link, delay }: FeatureCar
 export const FeatureHighlights = () => {
   const features: FeatureCardProps[] = [
     {
-      icon: Globe,
-      title: 'Multi-Locale Compare',
-      description: 'Compare news across 4 languages simultaneously. Stay updated on global League of Legends content from different regions.',
-      link: '/compare',
+      icon: Rss,
+      title: 'All Feeds Catalog',
+      description: 'Browse our complete catalog of 205+ RSS feeds. Search, filter, and copy any feed URL instantly.',
+      link: '/all-feeds',
       delay: 0,
     },
     {
