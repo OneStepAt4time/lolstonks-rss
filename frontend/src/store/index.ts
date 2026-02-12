@@ -46,7 +46,6 @@ interface ThemeStore {
 interface BookmarkStore {
   bookmarks: string[];
   toggleBookmark: (guid: string) => void;
-  isBookmarked: (guid: string) => boolean;
 }
 
 interface UIStore {
@@ -59,7 +58,7 @@ interface UIStore {
 
 // API base URL
 const API_BASE = import.meta.env.PROD
-  ? 'https://onestepat4time.github.io/lolstonksrss'
+  ? 'https://onestepat4time.github.io/lolstonks-rss'
   : 'http://localhost:8000';
 
 export const useStore = create<
@@ -201,9 +200,6 @@ export const useStore = create<
           ? bookmarks.filter(id => id !== guid)
           : [...bookmarks, guid];
         set({ bookmarks: newBookmarks });
-      },
-      isBookmarked: (guid) => {
-        return get().bookmarks.includes(guid);
       },
 
       // UI Store

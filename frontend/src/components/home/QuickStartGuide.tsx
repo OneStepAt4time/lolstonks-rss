@@ -1,29 +1,28 @@
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { Search, Copy, Rss, ArrowRight } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 interface StepProps {
   step: number;
-  icon: string;
+  icon: LucideIcon;
   title: string;
   description: string;
   delay: number;
 }
 
-const Step = ({ step, icon, title, description, delay }: StepProps) => (
+const Step = ({ step, icon: Icon, title, description, delay }: StepProps) => (
   <motion.div
-    initial={{ opacity: 0, x: -30 }}
+    initial={{ opacity: 0, x: -20 }}
     whileInView={{ opacity: 1, x: 0 }}
     viewport={{ once: true }}
     transition={{ duration: 0.5, delay }}
     className="relative group"
   >
     {/* Step number */}
-    <motion.div
-      className="absolute -left-4 top-0 w-10 h-10 bg-gradient-gold rounded-full flex items-center justify-center text-black font-bold text-lg shadow-gold group-hover:scale-110 transition-transform"
-      whileHover={{ rotate: 360 }}
-      transition={{ duration: 0.6 }}
-    >
+    <div className="absolute -left-4 top-0 w-10 h-10 bg-lol-gold rounded-full flex items-center justify-center text-black font-bold text-lg">
       {step}
-    </motion.div>
+    </div>
 
     {/* Content */}
     <div className="pl-12 pr-6 pb-12 relative">
@@ -33,22 +32,13 @@ const Step = ({ step, icon, title, description, delay }: StepProps) => (
       )}
 
       {/* Card */}
-      <div className="p-6 bg-lol-card rounded-xl border border-lol-gold/20 transition-all duration-300 group-hover:border-lol-gold/50 group-hover:shadow-glow-sm">
-        {/* Icon */}
-        <motion.div
-          className="text-4xl mb-4"
-          whileHover={{ scale: 1.2, rotate: [0, -10, 10, 0] }}
-          transition={{ duration: 0.4 }}
-        >
-          {icon}
-        </motion.div>
+      <div className="p-6 bg-[#111827] rounded-xl border border-white/[0.08] hover:border-lol-gold/30 transition-all">
+        <Icon className="w-6 h-6 text-lol-gold mb-4" />
 
-        {/* Title */}
         <h3 className="text-xl font-display font-bold text-white mb-2">
           {title}
         </h3>
 
-        {/* Description */}
         <p className="text-gray-400 leading-relaxed">
           {description}
         </p>
@@ -58,32 +48,32 @@ const Step = ({ step, icon, title, description, delay }: StepProps) => (
 );
 
 export const QuickStartGuide = () => {
-  const steps = [
+  const steps: StepProps[] = [
     {
       step: 1,
-      icon: '🌍',
+      icon: Search,
       title: 'Choose Your Locale',
       description: 'Select from 20 available locales including English, Japanese, Korean, Chinese, Spanish, and more. Get news in your preferred language.',
       delay: 0,
     },
     {
       step: 2,
-      icon: '📂',
-      title: 'Select Category',
-      description: 'Filter by 9 different categories including esports, patch notes, dev blogs, and community content. Focus on what matters to you.',
-      delay: 0.2,
+      icon: Copy,
+      title: 'Copy RSS URL',
+      description: 'Browse by category or source, then copy the RSS feed URL for the content you want to follow.',
+      delay: 0.15,
     },
     {
       step: 3,
-      icon: '📋',
-      title: 'Copy RSS URL',
-      description: 'Copy the RSS feed URL and add it to your favorite RSS reader. Stay updated with the latest League of Legends news automatically.',
-      delay: 0.4,
+      icon: Rss,
+      title: 'Subscribe in Your Reader',
+      description: 'Paste the URL into your favorite RSS reader. Stay updated with the latest League of Legends news automatically.',
+      delay: 0.3,
     },
   ];
 
   return (
-    <section className="py-20 px-4 bg-lol-dark-secondary">
+    <section className="py-20 px-4 bg-[#0a0e17]">
       <div className="container mx-auto max-w-6xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -91,14 +81,9 @@ export const QuickStartGuide = () => {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <motion.span
-            initial={{ opacity: 0, scale: 0.8 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="inline-block px-4 py-2 bg-lol-blue/10 border border-lol-blue/30 rounded-full text-lol-blue text-sm font-semibold mb-4"
-          >
+          <span className="inline-block px-4 py-2 bg-hextech/10 border border-hextech/30 rounded-full text-hextech text-sm font-semibold mb-4">
             GET STARTED
-          </motion.span>
+          </span>
           <h2 className="text-3xl md:text-5xl font-display font-bold text-white mb-4">
             Quick Start Guide
           </h2>
@@ -118,28 +103,16 @@ export const QuickStartGuide = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.4 }}
           className="text-center mt-8"
         >
-          <a
-            href="/feeds"
-            className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-gold text-black font-display font-bold text-lg uppercase tracking-wider rounded-lg transition-all hover:scale-105 active:scale-95 shadow-gold hover:shadow-gold-strong"
+          <Link
+            to="/feeds"
+            className="btn-primary inline-flex items-center gap-3 px-8 py-4 text-lg"
           >
             Browse All Feeds
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 7l5 5m0 0l-5 5m5-5H6"
-              />
-            </svg>
-          </a>
+            <ArrowRight className="w-5 h-5" />
+          </Link>
         </motion.div>
       </div>
     </section>

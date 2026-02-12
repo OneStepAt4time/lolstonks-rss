@@ -66,14 +66,19 @@ export function useApiWithArticles(
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
+  // Serialize filters to a stable string to prevent infinite re-renders
+  const filtersKey = JSON.stringify(filters ?? {});
+
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     setIsError(false);
     setError(null);
     setIsDemoMode(false);
 
+    const currentFilters = JSON.parse(filtersKey) as ArticleFilters;
+
     try {
-      const result = await api.getArticles(filters);
+      const result = await api.getArticles(currentFilters);
       setData(result);
       setIsDemoMode(false);
     } catch (err) {
@@ -82,15 +87,16 @@ export function useApiWithArticles(
         '[useApiWithFallback] API unavailable, using demo data:',
         err
       );
-      const demoData = filterDemoArticles(demoArticles, filters || {});
+      const demoData = filterDemoArticles(demoArticles, currentFilters);
       setData(demoData);
       setIsDemoMode(true);
-      setIsError(false); // Don't treat fallback as error
+      setIsError(false);
       setError(null);
     } finally {
       setIsLoading(false);
     }
-  }, [filters]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtersKey]);
 
   useEffect(() => {
     fetchData();
@@ -168,7 +174,7 @@ export function useApiWithFeeds(): UseApiWithFeedsResult {
           },
         ],
         base_url: import.meta.env.PROD
-          ? 'https://onestepat4time.github.io/lolstonksrss'
+          ? 'https://onestepat4time.github.io/lolstonks-rss'
           : 'http://localhost:8000',
       };
 

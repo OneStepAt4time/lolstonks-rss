@@ -2,7 +2,7 @@ import type { Article, ArticleFilters } from '../types/article';
 import type { FeedsResponse } from '../types/feed';
 
 const API_BASE = import.meta.env.PROD
-  ? 'https://onestepat4time.github.io/lolstonksrss'
+  ? 'https://onestepat4time.github.io/lolstonks-rss'
   : 'http://localhost:8000';
 
 export const api = {

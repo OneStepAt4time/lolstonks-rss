@@ -1,84 +1,40 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { Globe, Filter, Bell, ArrowRight } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 interface FeatureCardProps {
-  icon: string;
+  icon: LucideIcon;
   title: string;
   description: string;
   link: string;
   delay: number;
-  gradient: string;
 }
 
-const FeatureCard = ({ icon, title, description, link, delay, gradient }: FeatureCardProps) => (
+const FeatureCard = ({ icon: Icon, title, description, link, delay }: FeatureCardProps) => (
   <motion.div
-    initial={{ opacity: 0, y: 40 }}
+    initial={{ opacity: 0, y: 30 }}
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true }}
-    transition={{ duration: 0.6, delay }}
-    whileHover={{ y: -8 }}
-    className="group relative"
+    transition={{ duration: 0.5, delay }}
+    whileHover={{ y: -4 }}
+    className="group"
   >
     <Link to={link} className="block h-full">
-      <div className="relative h-full p-8 bg-lol-card rounded-2xl border border-lol-gold/20 overflow-hidden transition-all duration-300 group-hover:border-lol-gold/40 group-hover:shadow-gold">
-        {/* Animated gradient background */}
-        <motion.div
-          className={`absolute inset-0 opacity-10 ${gradient}`}
-          animate={{
-            backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: 'linear',
-          }}
-          style={{
-            backgroundSize: '200% 200%',
-          }}
-        />
+      <div className="h-full p-8 bg-[#111827] rounded-xl border border-white/[0.08] hover:border-lol-gold/30 transition-all">
+        <Icon className="w-6 h-6 text-lol-gold mb-4" />
 
-        {/* Icon */}
-        <motion.div
-          className="text-5xl mb-4"
-          whileHover={{ scale: 1.1, rotate: [0, -10, 10, -10, 0] }}
-          transition={{ duration: 0.5 }}
-        >
-          {icon}
-        </motion.div>
-
-        {/* Title */}
         <h3 className="text-xl font-display font-bold text-white mb-3 group-hover:text-lol-gold transition-colors">
           {title}
         </h3>
 
-        {/* Description */}
         <p className="text-gray-400 mb-4 leading-relaxed">
           {description}
         </p>
 
-        {/* Explore link */}
-        <div className="flex items-center text-lol-gold font-semibold text-sm group-hover:gap-3 transition-all">
+        <div className="flex items-center text-lol-gold font-semibold text-sm">
           <span>Explore</span>
-          <svg
-            className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 7l5 5m0 0l-5 5m5-5H6"
-            />
-          </svg>
-        </div>
-
-        {/* Decorative element */}
-        <div className="absolute bottom-0 right-0 w-24 h-24 opacity-10">
-          <svg viewBox="0 0 100 100" fill="currentColor" className="text-lol-gold">
-            <polygon points="0,100 100,100 100,0" />
-          </svg>
+          <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
         </div>
       </div>
     </Link>
@@ -86,35 +42,32 @@ const FeatureCard = ({ icon, title, description, link, delay, gradient }: Featur
 );
 
 export const FeatureHighlights = () => {
-  const features = [
+  const features: FeatureCardProps[] = [
     {
-      icon: '🌍',
+      icon: Globe,
       title: 'Multi-Locale Compare',
       description: 'Compare news across 4 languages simultaneously. Stay updated on global League of Legends content from different regions.',
       link: '/compare',
       delay: 0,
-      gradient: 'bg-gradient-to-br from-lol-blue to-lol-blue-dark',
     },
     {
-      icon: '📂',
+      icon: Filter,
       title: 'Category Filtering',
-      description: 'Filter by esports, patch notes, dev blogs, and more. Find exactly the type of content you\'re looking for.',
+      description: "Filter by esports, patch notes, dev blogs, and more. Find exactly the type of content you're looking for.",
       link: '/feeds',
-      delay: 0.2,
-      gradient: 'bg-gradient-to-br from-lol-gold to-lol-gold-dark',
+      delay: 0.15,
     },
     {
-      icon: '🔄',
-      title: 'Auto-Sync Scrolling',
-      description: 'Scroll one news column to scroll all. Experience seamless synchronized browsing when comparing multiple feeds.',
-      link: '/compare',
-      delay: 0.4,
-      gradient: 'bg-gradient-to-br from-lol-red to-lol-red-dark',
+      icon: Bell,
+      title: 'RSS Subscriptions',
+      description: 'Subscribe to any feed in your favorite RSS reader. Get instant notifications when new content is published.',
+      link: '/all-feeds',
+      delay: 0.3,
     },
   ];
 
   return (
-    <section className="py-20 px-4 bg-gradient-dark">
+    <section className="py-20 px-4">
       <div className="container mx-auto max-w-6xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -122,14 +75,9 @@ export const FeatureHighlights = () => {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <motion.span
-            initial={{ opacity: 0, scale: 0.8 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="inline-block px-4 py-2 bg-lol-gold/10 border border-lol-gold/30 rounded-full text-lol-gold text-sm font-semibold mb-4"
-          >
+          <span className="inline-block px-4 py-2 bg-lol-gold/10 border border-lol-gold/30 rounded-full text-lol-gold text-sm font-semibold mb-4">
             POWERFUL FEATURES
-          </motion.span>
+          </span>
           <h2 className="text-3xl md:text-5xl font-display font-bold text-white mb-4">
             Everything You Need
           </h2>
