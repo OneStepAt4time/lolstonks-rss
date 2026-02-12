@@ -30,15 +30,9 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
-        // Smart code splitting strategy for React 19 + Framer Motion compatibility
+        // Simplified code splitting to avoid circular dependencies
         manualChunks: (id) => {
-          // Vendor chunks - split large libraries for better caching
           if (id.includes('node_modules')) {
-            // React + Framer Motion bundle (must be together to fix loading order)
-            if (id.includes('react') || id.includes('react-dom') ||
-                id.includes('framer-motion') || id.includes('scheduler')) {
-              return 'react-vendor';
-            }
             // Three.js and related (large, used sparingly for 3D)
             if (id.includes('@react-three') || id.includes('three')) {
               return 'three-vendor';
@@ -47,7 +41,8 @@ export default defineConfig({
             if (id.includes('react-router')) {
               return 'router';
             }
-            // Other vendors
+            // All other vendors in a single chunk to avoid circular deps
+            // This includes react, react-dom, framer-motion, zustand, etc.
             return 'vendor';
           }
         },
