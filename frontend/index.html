@@ -50,19 +50,11 @@
     <!-- GitHub Pages SPA redirect handler: reads ?/ query from 404.html and restores the route -->
     <script>
       (function() {
-        var redirect = sessionStorage.redirect;
-        delete sessionStorage.redirect;
-        if (redirect && redirect !== location.href) {
-          history.replaceState(null, null, redirect);
-        } else {
-          var q = window.location.search;
-          if (q.length > 2 && q[0] === '?' && q[1] === '/') {
-            var path = q.slice(1).split('&')[0].replace(/~and~/g, '&');
-            var hash = window.location.hash;
-            history.replaceState(null, null,
-              window.location.pathname + path + (hash || '')
-            );
-          }
+        var q = window.location.search;
+        if (q.length > 2 && q[0] === '?' && q[1] === '/') {
+          var path = q.slice(1).split('&')[0].replace(/~and~/g, '&');
+          var base = window.location.pathname.replace(/\/+$/, '');
+          history.replaceState(null, null, base + path + (window.location.hash || ''));
         }
       })();
     </script>
