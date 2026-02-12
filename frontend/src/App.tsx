@@ -25,7 +25,7 @@ function App() {
   const { toasts, removeToast } = useToast();
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1">
