@@ -158,8 +158,17 @@ export const useStore = create<
       filter: {},
       setFilter: (filter) => {
         const currentFilter = get().filter;
-        set({ filter: { ...currentFilter, ...filter } });
-        get().filterArticles({ ...currentFilter, ...filter });
+        const newFilter = { ...currentFilter, ...filter };
+        // Only update if filter actually changed
+        const hasChanged = Object.keys(newFilter).some(
+          key => newFilter[key as keyof typeof newFilter] !== currentFilter[key as keyof typeof currentFilter]
+        ) || Object.keys(currentFilter).some(
+          key => currentFilter[key as keyof typeof currentFilter] !== newFilter[key as keyof typeof newFilter]
+        );
+        if (hasChanged) {
+          set({ filter: newFilter });
+          get().filterArticles(newFilter);
+        }
       },
       clearFilters: () => {
         set({ filter: {} });
