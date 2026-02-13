@@ -45,6 +45,6 @@ export default defineConfig({
     cssCodeSplit: true,
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', 'framer-motion', 'zustand'],
+    include: ['react', 'react-dom', 'react-router-dom', 'zustand'],
   },
 })

@@ -1,5 +1,3 @@
-import { AnimatePresence } from 'framer-motion';
-import { motion } from 'framer-motion';
 import { useEffect } from 'react';
 import { CheckCircle, AlertCircle, Info, X } from 'lucide-react';
 
@@ -41,7 +39,6 @@ export const Toast = ({ id, message, variant, onClose, duration = 5000 }: ToastP
     const timer = setTimeout(() => {
       onClose(id);
     }, duration);
-
     return () => clearTimeout(timer);
   }, [id, duration, onClose]);
 
@@ -49,12 +46,8 @@ export const Toast = ({ id, message, variant, onClose, duration = 5000 }: ToastP
   const Icon = config.icon;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 100, scale: 0.9 }}
-      animate={{ opacity: 1, x: 0, scale: 1 }}
-      exit={{ opacity: 0, x: 100, scale: 0.9 }}
-      transition={{ duration: 0.25, ease: 'easeOut' }}
-      className={`bg-[#111827] border border-white/[0.08] border-l-4 ${config.borderColor} rounded-lg shadow-lg p-4 mb-2 flex items-center gap-3 min-w-[300px] max-w-md`}
+    <div
+      className={`animate-fade-in bg-[#111827] border border-white/[0.08] border-l-4 ${config.borderColor} rounded-lg shadow-lg p-4 mb-2 flex items-center gap-3 min-w-[300px] max-w-md`}
       role="alert"
       aria-live="polite"
     >
@@ -67,7 +60,7 @@ export const Toast = ({ id, message, variant, onClose, duration = 5000 }: ToastP
       >
         <X className="w-4 h-4" />
       </button>
-    </motion.div>
+    </div>
   );
 };
 
@@ -77,20 +70,20 @@ interface ToastContainerProps {
 }
 
 export const ToastContainer = ({ toasts, onClose }: ToastContainerProps) => {
+  if (toasts.length === 0) return null;
+
   return (
     <div className="fixed top-4 right-4 z-50 flex flex-col items-end gap-2 pointer-events-none">
-      <AnimatePresence mode="popLayout">
-        {toasts.map((toast) => (
-          <div key={toast.id} className="pointer-events-auto">
-            <Toast
-              id={toast.id}
-              message={toast.message}
-              variant={toast.variant}
-              onClose={onClose}
-            />
-          </div>
-        ))}
-      </AnimatePresence>
+      {toasts.map((toast) => (
+        <div key={toast.id} className="pointer-events-auto">
+          <Toast
+            id={toast.id}
+            message={toast.message}
+            variant={toast.variant}
+            onClose={onClose}
+          />
+        </div>
+      ))}
     </div>
   );
 };

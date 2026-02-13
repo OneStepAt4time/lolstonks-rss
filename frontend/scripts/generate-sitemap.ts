@@ -80,12 +80,7 @@ function generateSitemapEntries(): SitemapEntry[] {
     priority: 1.0,
   });
 
-  entries.push({
-    url: `${SITE_URL}/feeds`,
-    lastModified: currentDate,
-    changeFrequency: 'daily',
-    priority: 0.9,
-  });
+  // /feeds redirects to / now, no separate entry needed
 
   // Locale feeds (high priority, updated hourly)
   LOCALES.forEach((locale) => {
