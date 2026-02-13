@@ -1,12 +1,11 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Rss, Globe, LayoutGrid } from 'lucide-react';
+import { Home, Rss, Globe } from 'lucide-react';
 
 export const Navigation = () => {
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
     { path: '/feeds', label: 'Browse Feeds', icon: Rss },
     { path: '/all-feeds', label: 'All Feeds', icon: Globe },
-    { path: '/compare', label: 'Compare', icon: LayoutGrid },
   ];
 
   return (

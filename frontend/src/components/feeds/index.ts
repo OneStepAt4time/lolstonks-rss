@@ -1,2 +1,2 @@
-export { FeedPreviewCard } from './FeedPreviewCard';
-export type { FeedPreviewCardProps, SampleArticle } from './FeedPreviewCard';
+// Feed components barrel export
+// FeedPreviewCard removed during feed catalog simplification

@@ -1,4 +1,3 @@
-import type { Article, ArticleFilters } from '../types/article';
 import type { FeedsResponse } from '../types/feed';
 
 const API_BASE = import.meta.env.PROD
@@ -6,21 +5,6 @@ const API_BASE = import.meta.env.PROD
   : 'http://localhost:8000';
 
 export const api = {
-  /**
-   * Fetch articles from the API
-   */
-  async getArticles(filters?: ArticleFilters): Promise<Article[]> {
-    const params = new URLSearchParams();
-    if (filters?.limit) params.append('limit', filters.limit.toString());
-    if (filters?.source) params.append('source', filters.source);
-
-    const response = await fetch(`${API_BASE}/api/articles?${params}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch articles');
-    }
-    return response.json();
-  },
-
   /**
    * Fetch all available feeds
    */

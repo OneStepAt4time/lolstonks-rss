@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Variants } from 'framer-motion';
-import { Home, Rss, Globe, LayoutGrid, X } from 'lucide-react';
+import { Home, Rss, Globe, X } from 'lucide-react';
 import { useStore } from '../../store';
 
 export const MobileNavigation = () => {
@@ -11,7 +11,6 @@ export const MobileNavigation = () => {
     { path: '/', label: 'Home', icon: Home },
     { path: '/feeds', label: 'Browse Feeds', icon: Rss },
     { path: '/all-feeds', label: 'All Feeds', icon: Globe },
-    { path: '/compare', label: 'Compare', icon: LayoutGrid },
   ];
 
   const menuVariants: Variants = {

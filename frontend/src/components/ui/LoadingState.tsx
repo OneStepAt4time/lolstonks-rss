@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { Loader2 } from 'lucide-react';
-import { ArticleCardSkeleton } from '../articles/ArticleCardSkeleton';
 
 export type LoadingVariant = 'spinner' | 'skeleton' | 'shimmer' | 'dots' | 'bars';
 export type LoadingSize = 'sm' | 'md' | 'lg' | 'full';
@@ -54,6 +53,34 @@ const LoadingContainer = ({
   return <div className={`${baseClasses} ${className}`}>{children}</div>;
 };
 
+/**
+ * Generic skeleton placeholder block with shimmer animation.
+ */
+const SkeletonBlock = ({ index = 0 }: { index?: number }) => {
+  const shimmerClasses = 'relative overflow-hidden';
+  const shimmerBg = 'before:absolute before:inset-0 before:bg-gradient-to-r before:from-lol-card before:via-lol-gold/20 before:to-lol-card before:bg-[length:200%_100%] before:animate-[shimmer_2s_ease-in-out_infinite]';
+
+  return (
+    <div
+      className="bg-lol-card border border-lol-gold/10 rounded-2xl overflow-hidden flex flex-col h-full animate-pulse"
+      style={{ animationDelay: `${index * 80}ms` }}
+    >
+      <div className={`aspect-video bg-lol-card ${shimmerClasses} ${shimmerBg}`} />
+      <div className="p-6 space-y-3">
+        <div className={`w-20 h-3.5 rounded bg-lol-card ${shimmerClasses} ${shimmerBg}`} />
+        <div className="space-y-2">
+          <div className={`w-full h-6 rounded bg-lol-card ${shimmerClasses} ${shimmerBg}`} />
+          <div className={`w-11/12 h-6 rounded bg-lol-card ${shimmerClasses} ${shimmerBg}`} />
+        </div>
+        <div className="space-y-2">
+          <div className={`w-full h-4 rounded bg-lol-card ${shimmerClasses} ${shimmerBg}`} />
+          <div className={`w-3/4 h-4 rounded bg-lol-card ${shimmerClasses} ${shimmerBg}`} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const LoadingState = ({
   variant = 'spinner',
   size = 'md',
@@ -74,7 +101,7 @@ export const LoadingState = ({
     return (
       <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ${containerClass} ${className}`}>
         {Array.from({ length: skeletonCount }).map((_, i) => (
-          <ArticleCardSkeleton key={i} index={i} />
+          <SkeletonBlock key={i} index={i} />
         ))}
       </div>
     );
