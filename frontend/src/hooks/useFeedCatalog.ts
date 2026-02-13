@@ -49,7 +49,8 @@ export function useFeedCatalog(): UseFeedCatalogReturn {
         (lg) =>
           matchingLocales.has(lg.locale) ||
           lg.localeName.toLowerCase().includes(query.toLowerCase()) ||
-          lg.flag.includes(query)
+          lg.flag.includes(query) ||
+          lg.searchTerms?.toLowerCase().includes(query.toLowerCase())
       );
     }
 
@@ -57,9 +58,10 @@ export function useFeedCatalog(): UseFeedCatalogReturn {
   }, [query, region]);
 
   const visibleFeedCount = useMemo(() => {
-    // Main feed + locale feeds shown
-    return 1 + filteredLocales.length;
-  }, [filteredLocales]);
+    // Main feed is hidden during search, only count it when showing
+    const mainFeedVisible = !query.trim() ? 1 : 0;
+    return mainFeedVisible + filteredLocales.length;
+  }, [filteredLocales, query]);
 
   const hasActiveFilters = query.trim().length > 0 || region !== 'all';
 

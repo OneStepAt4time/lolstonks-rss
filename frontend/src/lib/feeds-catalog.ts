@@ -15,27 +15,27 @@ export const LOCALES = [
   'ar-ae', 'vi-vn', 'th-th', 'id-id', 'ph-ph'
 ] as const;
 
-export const LOCALE_NAMES: Record<string, { name: string; flag: string }> = {
-  'en-us': { name: 'English (US)', flag: '🇺🇸' },
-  'it-it': { name: 'Italiano', flag: '🇮🇹' },
-  'en-gb': { name: 'English (UK)', flag: '🇬🇧' },
-  'es-es': { name: 'Español (España)', flag: '🇪🇸' },
-  'es-mx': { name: 'Español (México)', flag: '🇲🇽' },
-  'fr-fr': { name: 'Français', flag: '🇫🇷' },
-  'de-de': { name: 'Deutsch', flag: '🇩🇪' },
-  'pt-br': { name: 'Português (Brasil)', flag: '🇧🇷' },
-  'ru-ru': { name: 'Русский', flag: '🇷🇺' },
-  'tr-tr': { name: 'Türkçe', flag: '🇹🇷' },
-  'pl-pl': { name: 'Polski', flag: '🇵🇱' },
-  'ja-jp': { name: '日本語', flag: '🇯🇵' },
-  'ko-kr': { name: '한국어', flag: '🇰🇷' },
-  'zh-cn': { name: '简体中文', flag: '🇨🇳' },
-  'zh-tw': { name: '繁體中文', flag: '🇹🇼' },
-  'ar-ae': { name: 'العربية', flag: '🇦🇪' },
-  'vi-vn': { name: 'Tiếng Việt', flag: '🇻🇳' },
-  'th-th': { name: 'ภาษาไทย', flag: '🇹🇭' },
-  'id-id': { name: 'Bahasa Indonesia', flag: '🇮🇩' },
-  'ph-ph': { name: 'Filipino', flag: '🇵🇭' }
+export const LOCALE_NAMES: Record<string, { name: string; flag: string; searchTerms?: string }> = {
+  'en-us': { name: 'English (US)', flag: '🇺🇸', searchTerms: 'united states america' },
+  'it-it': { name: 'Italiano', flag: '🇮🇹', searchTerms: 'italian italy' },
+  'en-gb': { name: 'English (UK)', flag: '🇬🇧', searchTerms: 'united kingdom britain' },
+  'es-es': { name: 'Español (España)', flag: '🇪🇸', searchTerms: 'spanish spain' },
+  'es-mx': { name: 'Español (México)', flag: '🇲🇽', searchTerms: 'spanish mexico' },
+  'fr-fr': { name: 'Français', flag: '🇫🇷', searchTerms: 'french france' },
+  'de-de': { name: 'Deutsch', flag: '🇩🇪', searchTerms: 'german germany' },
+  'pt-br': { name: 'Português (Brasil)', flag: '🇧🇷', searchTerms: 'portuguese brazil' },
+  'ru-ru': { name: 'Русский', flag: '🇷🇺', searchTerms: 'russian russia' },
+  'tr-tr': { name: 'Türkçe', flag: '🇹🇷', searchTerms: 'turkish turkey' },
+  'pl-pl': { name: 'Polski', flag: '🇵🇱', searchTerms: 'polish poland' },
+  'ja-jp': { name: '日本語', flag: '🇯🇵', searchTerms: 'japanese japan' },
+  'ko-kr': { name: '한국어', flag: '🇰🇷', searchTerms: 'korean korea' },
+  'zh-cn': { name: '简体中文', flag: '🇨🇳', searchTerms: 'chinese china simplified' },
+  'zh-tw': { name: '繁體中文', flag: '🇹🇼', searchTerms: 'chinese taiwan traditional' },
+  'ar-ae': { name: 'العربية', flag: '🇦🇪', searchTerms: 'arabic emirates' },
+  'vi-vn': { name: 'Tiếng Việt', flag: '🇻🇳', searchTerms: 'vietnamese vietnam' },
+  'th-th': { name: 'ภาษาไทย', flag: '🇹🇭', searchTerms: 'thai thailand' },
+  'id-id': { name: 'Bahasa Indonesia', flag: '🇮🇩', searchTerms: 'indonesian indonesia' },
+  'ph-ph': { name: 'Filipino', flag: '🇵🇭', searchTerms: 'philippines tagalog' }
 };
 
 /** Region groupings for the catalog UI */
@@ -64,6 +64,7 @@ export interface LocaleGroup {
   localeName: string;
   flag: string;
   feed: FeedItem;
+  searchTerms?: string;
 }
 
 export interface FeedCatalog {
@@ -106,7 +107,7 @@ export function getFeedCatalog(): FeedCatalog {
   const byLocale: LocaleGroup[] = LOCALES.map((locale) => {
     const info = LOCALE_NAMES[locale];
     const feed = localeFeeds.find((f) => f.locale === locale)!;
-    return { locale, localeName: info.name, flag: info.flag, feed };
+    return { locale, localeName: info.name, flag: info.flag, feed, searchTerms: info.searchTerms };
   });
 
   return {
@@ -126,10 +127,18 @@ export function searchFeeds(catalog: FeedCatalog, query: string): FeedItem[] {
 
   const q = query.toLowerCase();
   const all = [catalog.mainFeed, ...catalog.localeFeeds];
-  return all.filter((feed) =>
-    feed.displayName.toLowerCase().includes(q) ||
-    feed.url.toLowerCase().includes(q) ||
-    feed.locale?.toLowerCase().includes(q) ||
-    feed.icon.includes(q)
-  );
+  return all.filter((feed) => {
+    if (
+      feed.displayName.toLowerCase().includes(q) ||
+      feed.url.toLowerCase().includes(q) ||
+      feed.locale?.toLowerCase().includes(q) ||
+      feed.icon.includes(q)
+    ) return true;
+    // Check English search terms for locale feeds
+    if (feed.locale) {
+      const info = LOCALE_NAMES[feed.locale];
+      if (info?.searchTerms?.toLowerCase().includes(q)) return true;
+    }
+    return false;
+  });
 }
