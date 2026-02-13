@@ -5,6 +5,7 @@ import { ToastContainer } from './components/ui/Toast';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { useToast } from './hooks/useToast';
 import { CatalogPage } from './pages/CatalogPage';
+import { ReaderPage } from './pages/ReaderPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
           <main className="flex-1">
             <Routes>
               <Route path="/" element={<CatalogPage />} />
+              <Route path="/read/:locale" element={<ReaderPage />} />
               <Route path="/feeds" element={<Navigate to="/" replace />} />
               <Route path="/all-feeds" element={<Navigate to="/" replace />} />
               <Route path="*" element={<NotFoundPage />} />
