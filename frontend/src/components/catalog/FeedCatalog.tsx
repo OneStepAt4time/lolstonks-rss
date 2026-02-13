@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { SearchBar } from './SearchBar';
 import { RegionTabs } from './RegionTabs';
 import { StatsBar } from './StatsBar';
@@ -29,6 +30,11 @@ export const FeedCatalog = () => {
     <div className="space-y-6">
       {/* Search */}
       <SearchBar value={query} onChange={setQuery} />
+
+      {/* Hint */}
+      <p className="text-sm text-gray-500 -mt-2">
+        Click a language to read articles, or expand to copy the feed URL.
+      </p>
 
       {/* Filters row */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
@@ -68,9 +74,11 @@ export const FeedCatalog = () => {
 
       {/* Main feed (always shown at top when no search filter) */}
       {!query.trim() && (
-        <div className="border border-lol-gold/20 rounded-xl bg-lol-gold/[0.03]">
-          <FeedRow feed={catalog.mainFeed} />
-        </div>
+        <Link to="/read/main" className="block">
+          <div className="border border-lol-gold/20 rounded-xl bg-lol-gold/[0.03] hover:bg-lol-gold/[0.06] transition-colors">
+            <FeedRow feed={catalog.mainFeed} />
+          </div>
+        </Link>
       )}
 
       {/* Locale feeds */}
