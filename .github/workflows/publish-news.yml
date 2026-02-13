@@ -124,9 +124,8 @@ jobs:
           from src.services.update_service import UpdateServiceV2
           from src.config import get_settings
 
-          # Known working locales - these have been validated to return 200
-          # Failing locales (zh-cn, ph-ph, etc.) are excluded to prevent CI failures
-          # They can be added back once Riot API endpoints are confirmed working
+          # Validated working locales - tested against Riot Next.js API (2026-02-13)
+          # 18/20 locales return 200 articles successfully
           WORKING_LOCALES = [
               'en-us',  # English - United States (primary)
               'en-gb',  # English - Great Britain
@@ -138,9 +137,17 @@ jobs:
               'pt-br',  # Portuguese - Brazil
               'ja-jp',  # Japanese - Japan
               'ko-kr',  # Korean - Korea
-              # Excluded due to 404 errors (can be re-enabled after validation):
-              # 'ru-ru', 'tr-tr', 'pl-pl', 'cs-cz', 'hu-hu', 'ro-ro',
-              # 'zh-cn', 'zh-tw', 'vi-vn', 'th-th', 'id-id', 'ph-ph'
+              'ru-ru',  # Russian - Russia
+              'tr-tr',  # Turkish - Turkey
+              'pl-pl',  # Polish - Poland
+              'zh-tw',  # Chinese - Traditional (Taiwan)
+              'ar-ae',  # Arabic - UAE
+              'vi-vn',  # Vietnamese - Vietnam
+              'th-th',  # Thai - Thailand
+              'id-id',  # Indonesian - Indonesia
+              # Excluded - Riot geo-redirects these (no standalone news pages):
+              # 'zh-cn' - China uses Tencent (lol.qq.com), Riot redirects with 307
+              # 'ph-ph' - Philippines has no localized content, Riot redirects with 307
           ]
 
           async def update_news():
