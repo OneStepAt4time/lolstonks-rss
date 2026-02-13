@@ -1,8 +1,3 @@
-/**
- * Toast hook - thin wrapper around the main store's toast system.
- * Provides a consistent API for showing toast notifications.
- */
-
 import { useStore } from '../store';
 import { useCallback } from 'react';
 
@@ -16,10 +11,6 @@ export interface Toast {
 
 let toastId = 0;
 
-/**
- * Hook for managing toast notifications.
- * Uses a local array of toasts with auto-dismiss.
- */
 export function useToast() {
   const store = useStore();
 
@@ -33,10 +24,6 @@ export function useToast() {
     store.hideToast();
   }, [store]);
 
-  const clearToasts = useCallback(() => {
-    store.hideToast();
-  }, [store]);
-
   return {
     toasts: store.toast ? [{
       id: 'store-toast',
@@ -45,6 +32,5 @@ export function useToast() {
     }] : [] as Toast[],
     showToast,
     removeToast,
-    clearToasts,
   };
 }

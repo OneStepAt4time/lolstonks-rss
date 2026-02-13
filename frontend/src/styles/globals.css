@@ -7,7 +7,6 @@
     @apply scroll-smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
   }
 
   body {
@@ -15,12 +14,6 @@
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     background-color: #0a0e17;
     color: #F0F6FC;
-    overflow-x: hidden;
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Rajdhani', 'Orbitron', 'Bebas Neue', sans-serif;
-    @apply font-bold leading-tight;
   }
 
   ::selection {
@@ -33,107 +26,43 @@
 }
 
 @layer components {
-  /* Premium button - gold gradient */
   .btn-primary {
-    @apply relative inline-flex items-center justify-center gap-2;
-    @apply px-6 py-3 font-semibold text-lg uppercase tracking-wider;
-    @apply text-black bg-gradient-to-r from-lol-gold-dark via-lol-gold to-lol-gold-light rounded-lg;
-    @apply transition-all duration-300;
-    @apply hover:scale-105 hover:shadow-gold;
-    @apply active:scale-95;
-    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
-    font-family: 'Rajdhani', sans-serif;
-    box-shadow: 0 4px 15px rgba(200, 155, 60, 0.3);
+    @apply inline-flex items-center justify-center gap-2;
+    @apply px-5 py-2.5 font-semibold text-sm;
+    @apply text-black bg-lol-gold rounded-lg;
+    @apply transition-colors;
+    @apply hover:bg-lol-gold-light;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
-  .btn-primary:hover {
-    box-shadow: 0 8px 25px rgba(200, 155, 60, 0.4);
-  }
-
-  /* Secondary button - outline */
   .btn-secondary {
-    @apply relative inline-flex items-center justify-center gap-2;
-    @apply px-6 py-3 font-semibold text-lg uppercase tracking-wider;
-    @apply text-lol-gold bg-transparent border-2 border-lol-gold rounded-lg;
-    @apply transition-all duration-300;
-    @apply hover:scale-105 hover:bg-lol-gold/10;
-    @apply active:scale-95;
-    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
-    font-family: 'Rajdhani', sans-serif;
+    @apply inline-flex items-center justify-center gap-2;
+    @apply px-5 py-2.5 font-semibold text-sm;
+    @apply text-lol-gold bg-transparent border border-lol-gold/40 rounded-lg;
+    @apply transition-colors;
+    @apply hover:bg-lol-gold/10;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
-  /* Ghost button */
   .btn-ghost {
-    @apply relative inline-flex items-center justify-center gap-2;
-    @apply px-4 py-2 font-medium text-sm;
+    @apply inline-flex items-center justify-center gap-2;
+    @apply px-3 py-1.5 font-medium text-sm;
     @apply text-gray-300 bg-transparent rounded-lg;
-    @apply transition-all duration-200;
+    @apply transition-colors;
     @apply hover:text-white hover:bg-white/5;
-    @apply active:scale-95;
   }
 
-  /* Card styles */
-  .card {
-    @apply relative bg-[#111827] border border-white/[0.08] rounded-xl overflow-hidden;
-    @apply transition-all duration-300;
-    @apply hover:border-lol-gold/30 hover:-translate-y-1;
-  }
-
-  .card:hover {
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(200, 155, 60, 0.1);
-  }
-
-  /* Glass morphism - header/modals only */
-  .glass {
-    @apply bg-[#0a0e17]/80 backdrop-blur-xl border-b border-white/[0.08];
-  }
-
-  /* Text glow effects */
-  .text-glow {
-    text-shadow: 0 0 10px rgba(200, 155, 60, 0.5), 0 0 20px rgba(200, 155, 60, 0.3);
-  }
-
-  .text-glow-blue {
-    text-shadow: 0 0 10px rgba(10, 200, 185, 0.5), 0 0 20px rgba(10, 200, 185, 0.3);
-  }
-
-  /* Gradient text */
-  .text-gradient-gold {
-    @apply bg-gradient-to-r from-lol-gold-dark via-lol-gold to-lol-gold-light bg-clip-text text-transparent;
-  }
-
-  .text-gradient-hextech {
-    @apply bg-gradient-to-r from-hextech-dark via-hextech to-hextech-light bg-clip-text text-transparent;
-  }
-
-  /* Input styles */
   .input-premium {
     @apply w-full px-4 py-3;
     @apply bg-[#111827] border border-white/[0.08] rounded-xl;
     @apply text-white placeholder-gray-500;
-    @apply transition-all duration-200;
+    @apply transition-colors;
     @apply focus:border-lol-gold/50 focus:ring-2 focus:ring-lol-gold/20;
     @apply outline-none;
-  }
-
-  /* Badge styles */
-  .badge {
-    @apply inline-flex items-center px-3 py-1;
-    @apply font-semibold text-xs tracking-wider uppercase rounded-full;
-    @apply transition-all duration-200;
-  }
-
-  .badge-gold {
-    @apply badge bg-lol-gold/10 text-lol-gold border border-lol-gold/30;
-  }
-
-  .badge-hextech {
-    @apply badge bg-hextech/10 text-hextech border border-hextech/30;
   }
 }
 
 @layer utilities {
-  /* Custom scrollbar */
   .scrollbar-premium {
     scrollbar-width: thin;
     scrollbar-color: #C89B3C #111827;
@@ -173,16 +102,6 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(200, 155, 60, 0.6);
-}
-
-/* Loading spinner */
-.spinner {
-  @apply inline-block w-8 h-8 border-4 border-lol-gold/30 border-t-lol-gold rounded-full;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
 }
 
 /* Reduced motion */
