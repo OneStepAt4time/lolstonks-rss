@@ -31,8 +31,8 @@ export const SearchBar = ({ value, onChange }: SearchBarProps) => {
         ref={inputRef}
         type="text"
         role="searchbox"
-        aria-label="Search feeds by language or region"
-        placeholder="Search feeds by language, region..."
+        aria-label="Search feeds by game, language, or region"
+        placeholder="Search feeds by game, language, region..."
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="w-full pl-12 pr-20 py-3.5 bg-lol-dark-secondary border border-white/[0.08] rounded-xl text-white placeholder-gray-500 transition-colors focus:border-lol-gold/50 focus:ring-2 focus:ring-lol-gold/20 outline-none"
