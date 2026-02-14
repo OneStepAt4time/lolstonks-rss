@@ -89,33 +89,45 @@ jobs:
       - name: Generate changelog
         id: changelog
         run: |
-          # Generate changelog from git commits since last tag
+          VERSION="${{ steps.version.outputs.version }}"
+          TAG="${{ steps.version.outputs.tag }}"
+
+          # Find previous tag
           PREVIOUS_TAG=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1) 2>/dev/null || echo "")
+          echo "previous_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
 
           if [ -z "$PREVIOUS_TAG" ]; then
+            RANGE="HEAD"
             echo "## Changes" > CHANGELOG_RELEASE.md
             git log --pretty=format:"- %s (%h)" >> CHANGELOG_RELEASE.md
           else
+            RANGE="$PREVIOUS_TAG..HEAD"
             echo "## Changes since $PREVIOUS_TAG" > CHANGELOG_RELEASE.md
-            git log $PREVIOUS_TAG..HEAD --pretty=format:"- %s (%h)" >> CHANGELOG_RELEASE.md
+            git log $RANGE --pretty=format:"- %s (%h)" >> CHANGELOG_RELEASE.md
           fi
 
-          # Categorize commits
           echo "" >> CHANGELOG_RELEASE.md
           echo "### Features" >> CHANGELOG_RELEASE.md
-          git log $PREVIOUS_TAG..HEAD --pretty=format:"- %s (%h)" --grep="^feat" >> CHANGELOG_RELEASE.md || echo "- No new features" >> CHANGELOG_RELEASE.md
+          git log $RANGE --pretty=format:"- %s (%h)" --grep="^feat" >> CHANGELOG_RELEASE.md || echo "- No new features" >> CHANGELOG_RELEASE.md
 
           echo "" >> CHANGELOG_RELEASE.md
           echo "### Bug Fixes" >> CHANGELOG_RELEASE.md
-          git log $PREVIOUS_TAG..HEAD --pretty=format:"- %s (%h)" --grep="^fix" >> CHANGELOG_RELEASE.md || echo "- No bug fixes" >> CHANGELOG_RELEASE.md
+          git log $RANGE --pretty=format:"- %s (%h)" --grep="^fix" >> CHANGELOG_RELEASE.md || echo "- No bug fixes" >> CHANGELOG_RELEASE.md
 
           echo "" >> CHANGELOG_RELEASE.md
           echo "### Documentation" >> CHANGELOG_RELEASE.md
-          git log $PREVIOUS_TAG..HEAD --pretty=format:"- %s (%h)" --grep="^docs" >> CHANGELOG_RELEASE.md || echo "- No documentation changes" >> CHANGELOG_RELEASE.md
+          git log $RANGE --pretty=format:"- %s (%h)" --grep="^docs" >> CHANGELOG_RELEASE.md || echo "- No documentation changes" >> CHANGELOG_RELEASE.md
 
       - name: Create Release Notes
         id: release_notes
         run: |
+          PREVIOUS_TAG="${{ steps.changelog.outputs.previous_tag }}"
+          if [ -n "$PREVIOUS_TAG" ]; then
+            COMPARE_LINK="Full changelog: https://github.com/${{ github.repository }}/compare/${PREVIOUS_TAG}...${{ steps.version.outputs.tag }}"
+          else
+            COMPARE_LINK=""
+          fi
+
           cat > RELEASE_NOTES.md << EOF
           # LoL Stonks RSS v${{ steps.version.outputs.version }}
 
@@ -124,15 +136,10 @@ jobs:
 
           ## Installation
 
-          ### Docker
+          ### Docker (recommended)
           \`\`\`bash
           docker pull ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
           docker run -p 8000:8000 ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
-          \`\`\`
-
-          ### Python
-          \`\`\`bash
-          pip install lolstonksrss==${{ steps.version.outputs.version }}
           \`\`\`
 
           ## Changelog
@@ -143,13 +150,13 @@ jobs:
           - \`ghcr.io/${{ github.repository }}:latest\`
 
           ## Verification
-          To verify the release:
           \`\`\`bash
           docker run --rm ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }} python -c "import src; print(src.__version__)"
           \`\`\`
+          Expected output: \`${{ steps.version.outputs.version }}\`
 
           ## What's Changed
-          Full changelog: https://github.com/${{ github.repository }}/compare/$PREVIOUS_TAG...${{ steps.version.outputs.tag }}
+          $COMPARE_LINK
           EOF
 
       - name: Create GitHub Release
@@ -175,47 +182,6 @@ jobs:
     needs: create-release
     uses: ./.github/workflows/docker-publish.yml
     secrets: inherit
-
-  publish-pypi:
-    name: Publish to PyPI
-    needs: create-release
-    runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/project/lolstonksrss/
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install build dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install build twine
-
-      - name: Build package
-        run: python -m build
-
-      - name: Check package
-        run: twine check dist/*
-
-      - name: Publish to PyPI
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: twine upload dist/*
-        if: ${{ secrets.PYPI_API_TOKEN != '' }}
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-${{ github.run_id }}
-          path: dist/
 
   workflow-success:
     name: Workflow Status

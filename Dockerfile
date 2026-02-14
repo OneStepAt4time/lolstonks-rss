@@ -15,10 +15,12 @@ RUN uv sync --frozen --no-dev --no-install-project
 FROM python:3.11-slim
 
 # Set environment variables
+ARG APP_VERSION=0.0.0.dev0
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     TZ=UTC \
-    PATH=/app/.venv/bin:$PATH
+    PATH=/app/.venv/bin:$PATH \
+    APP_VERSION=${APP_VERSION}
 
 # Create non-root user for security
 RUN useradd -m -u 1000 lolrss && \

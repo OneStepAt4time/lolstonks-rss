@@ -1,714 +1,233 @@
-# Automated Deployment Guide
+# Deployment Guide
 
-Complete guide for automated deployment of LoL Stonks RSS to Windows Server using GitHub Actions.
+How to deploy and release LoL Stonks RSS.
 
 ## Overview
 
-The deployment system uses GitHub Actions to automatically build, test, and deploy the application to a Windows Server running Docker Desktop. The deployment includes:
+There are two deployment paths:
 
-- Automated Docker image building and pushing to GitHub Container Registry (GHCR)
-- SSH-based remote deployment to Windows Server
-- Automated health checks and verification
-- Automatic rollback on deployment failure
-- Blue-green deployment support
+| Path | What | How | When |
+|------|------|-----|------|
+| **GitHub Pages** | Frontend + RSS feeds | Automatic via GitHub Actions | Every 15 minutes (news) + on push (frontend) |
+| **Docker (self-hosted)** | Full API server | Pull from GHCR, run with docker-compose | On demand |
 
-## Architecture
+## GitHub Pages (Automatic)
 
-```
-GitHub Push/Release
-    ↓
-GitHub Actions CI/CD
-    ↓
-Build Docker Image
-    ↓
-Push to GHCR
-    ↓
-SSH to Windows Server
-    ↓
-Deploy Container
-    ↓
-Health Check
-    ↓
-Success or Rollback
-```
+The frontend and RSS feeds are deployed to GitHub Pages automatically. No manual steps required.
 
-## Prerequisites
+### How It Works
 
-### 1. Windows Server Setup
+**Frontend deployment** (`deploy-frontend.yml`):
+- Triggers on push to master when `frontend/` files change
+- Builds the React/Vite frontend
+- Generates RSS feeds and news pages
+- Deploys to GitHub Pages
 
-**Required Software:**
-- Windows Server 2019 or later
-- Docker Desktop for Windows (with WSL 2 backend)
-- OpenSSH Server (for remote access)
-- Git (optional, for manual deployment)
+**News publishing** (`publish-news.yml`):
+- Runs every 15 minutes on a cron schedule
+- Fetches latest LoL news from Riot API
+- Generates RSS XML feeds for all enabled locales
+- Generates HTML news pages
+- Commits and deploys to GitHub Pages
+- Gracefully skips if no new content
 
-**Installation Steps:**
+### Monitored Locales
 
-```powershell
-# Install Docker Desktop for Windows
-# Download from: https://www.docker.com/products/docker-desktop/
+The publish-news workflow generates feeds for 8 validated locales:
+`en-us`, `ko-kr`, `de-de`, `es-es`, `fr-fr`, `ja-jp`, `pt-br`, `it-it`
 
-# Enable OpenSSH Server (if not already enabled)
-# Go to Settings > Apps > Optional Features > OpenSSH Server
+## Docker Self-Hosted Deployment
 
-# Start SSH service
-Start-Service sshd
-Set-Service -Name sshd -StartupType 'Automatic'
+For running your own instance of the API server.
 
-# Confirm SSH is running
-Get-Service sshd
-```
+### Prerequisites
 
-### 2. Firewall Configuration
+- Docker and Docker Compose installed
+- Git (to clone the repository)
 
-```powershell
-# Allow SSH (port 22)
-New-NetFirewallRule -DisplayName "SSH" -Direction Inbound -Protocol TCP -LocalPort 22 -Action Allow
+### Quick Start
 
-# Allow application port (8000)
-New-NetFirewallRule -DisplayName "LoL Stonks RSS" -Direction Inbound -Protocol TCP -LocalPort 8000 -Action Allow
+```bash
+# Clone the repository
+git clone https://github.com/OneStepAt4time/lolstonks-rss.git
+cd lolstonks-rss
 
-# Verify rules
-Get-NetFirewallRule -DisplayName "SSH", "LoL Stonks RSS"
+# Create environment file
+cp .env.example .env
+# Edit .env with your settings
+
+# Create data directory for the database
+mkdir -p data
+
+# Start the service
+docker-compose up -d
 ```
 
-### 3. Docker Configuration
+The API will be available at `http://localhost:8002`.
 
-```powershell
-# Verify Docker is running
-docker --version
-docker ps
+### Using a Pre-built Image
 
-# Login to GitHub Container Registry (for manual pulls)
-# Username: GitHub username
-# Password: GitHub Personal Access Token (PAT) with `read:packages` scope
-docker login ghcr.io
+Instead of building locally, pull from GitHub Container Registry:
+
+```bash
+docker pull ghcr.io/onestepat4time/lolstonks-rss:latest
+
+# Or a specific version
+docker pull ghcr.io/onestepat4time/lolstonks-rss:2.0.0
 ```
 
-### 4. Deployment Directory Setup
+To use GHCR images with docker-compose, update `docker-compose.yml`:
 
-```powershell
-# Create deployment directory
-mkdir C:\lolstonksrss
-cd C:\lolstonksrss
-
-# Create required subdirectories
-mkdir data
-mkdir logs
-
-# Verify permissions
-icacls . /grant "${env:USERNAME}:(OI)(CI)F"
+```yaml
+services:
+  lolstonksrss:
+    image: ghcr.io/onestepat4time/lolstonks-rss:latest
+    # Remove or comment out the 'build:' section
 ```
 
-## GitHub Secrets Configuration
+### Configuration
 
-### Required Secrets
+All configuration is via environment variables. See `.env.example` for the full list.
 
-Configure the following secrets in your GitHub repository (`Settings > Secrets and variables > Actions > New repository secret`):
+Key settings:
 
-| Secret Name | Description | Example |
-|------------|-------------|---------|
-| `WINDOWS_SERVER_HOST` | Server hostname or IP address | `192.168.1.100` or `server.example.com` |
-| `WINDOWS_SERVER_USER` | SSH username | `deploy` or `Administrator` |
-| `WINDOWS_SERVER_SSH_KEY` | Private SSH key for authentication | See key generation below |
-| `WINDOWS_SERVER_DEPLOY_PATH` | Deployment path on server | `C:\lolstonksrss` or `C:\inetpub\wwwroot\lolstonksrss` |
-| `GITHUB_TOKEN` | Automatically provided by GitHub Actions | N/A (automatic) |
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PORT` | `8000` | Internal container port |
+| `HOST` | `0.0.0.0` | Bind address |
+| `DATABASE_PATH` | `data/articles.db` | SQLite database path |
+| `UPDATE_INTERVAL_MINUTES` | `5` | How often to fetch new articles |
+| `SUPPORTED_LOCALES` | `en-us,...` | Comma-separated locale list |
+| `ALLOWED_ORIGINS` | `http://localhost:8002` | CORS allowed origins |
+| `LOG_LEVEL` | `INFO` | Logging verbosity |
+| `RSS_MAX_ITEMS` | `50` | Max items per RSS feed |
+| `CACHE_TTL_SECONDS` | `21600` | Cache duration (6 hours) |
 
-### SSH Key Generation
+**Note**: The docker-compose.yml maps port `8002` on the host to `8000` in the container. Set `ALLOWED_ORIGINS` to match the host port you access the API on.
 
-**On your local machine:**
+## Creating a Release
 
-```powershell
-# Generate SSH key pair (if you don't have one)
-ssh-keygen -t ed25519 -C "github-actions-deploy" -f ~/.ssh/github_actions_deploy
+Releases publish Docker images to GitHub Container Registry (GHCR).
 
-# This creates:
-# - Private key: ~/.ssh/github_actions_deploy
-# - Public key: ~/.ssh/github_actions_deploy.pub
-```
+### Steps
 
-**On Windows Server:**
-
-```powershell
-# Copy the PUBLIC key content and add it to:
-# C:\Users\<USERNAME>\.ssh\authorized_keys
-
-# If file doesn't exist, create it:
-mkdir C:\Users\$env:USERNAME\.ssh
-New-Item C:\Users\$env:USERNAME\.ssh\authorized_keys
-
-# Add the public key content to authorized_keys
-# (Use your favorite text editor)
-
-# Set proper permissions
-icacls C:\Users\$env:USERNAME\.ssh\authorized_keys /inheritance:r
-icacls C:\Users\$env:USERNAME\.ssh\authorized_keys /grant "$($env:USERNAME):R"
-
-# Test SSH connection from GitHub Actions runner (via manual workflow)
-```
-
-**Add Private Key to GitHub Secrets:**
-
-1. Copy the content of the private key file (e.g., `github_actions_deploy`)
-2. Go to GitHub repository: `Settings > Secrets and variables > Actions`
-3. Click `New repository secret`
-4. Name: `WINDOWS_SERVER_SSH_KEY`
-5. Paste the entire private key content (including `-----BEGIN` and `-----END` lines)
-6. Click `Add secret`
-
-**Important Security Notes:**
-- Never commit private keys to the repository
-- Use dedicated deploy user with minimal permissions
-- Rotate SSH keys regularly
-- Restrict SSH access by IP address using firewall rules
-
-## Deployment Workflow
-
-### Automatic Deployment
-
-Deployment is automatically triggered on:
-- Push to `main` or `master` branch
-- Creating release tags (e.g., `v1.0.0`)
-- Manual workflow dispatch
-
-### Manual Deployment
-
-1. Go to `Actions` tab in GitHub
-2. Select `Deploy to Production (Windows Server)` workflow
-3. Click `Run workflow`
-4. Select branch
-5. Choose environment (production or staging)
-6. Click `Run workflow`
-
-## Deployment Process
-
-### Step-by-Step
-
-1. **Pre-deployment Checks**
-   - Verify repository state
-   - Extract image metadata
-   - Confirm deployment should proceed
-
-2. **Build and Push**
-   - Build Docker image using Buildx
-   - Tag with multiple versions (latest, semver, SHA)
-   - Push to GitHub Container Registry (GHCR)
-   - Generate artifact attestation
-
-3. **Deploy to Server**
-   - Setup SSH connection
-   - Verify SSH connectivity
-   - Backup current version as `:previous`
-   - Pull new Docker image
-   - Stop existing container
-   - Start new container
-   - Wait for startup (45 seconds)
-
-4. **Health Check**
-   - Check `/health` endpoint (up to 30 attempts)
-   - Verify main feed: `/feed.xml`
-   - Verify English feed: `/feeds/en-us.xml`
-   - Verify Italian feed: `/feeds/it-it.xml`
-
-5. **Success or Rollback**
-   - **Success**: Display deployment summary
-   - **Failure**: Automatic rollback to `:previous` image
-
-## Rollback Strategy
-
-### Automatic Rollback
-
-If deployment fails (health check timeout), the workflow automatically:
-1. Stops the failed container
-2. Tags `:previous` image as `:latest`
-3. Starts container with previous version
-4. Verifies rollback health
-5. Sends notification
-
-### Manual Rollback
-
-If you need to manually rollback:
-
-```powershell
-# On the Windows Server
-cd C:\lolstonksrss
-
-# Run the rollback script
-.\scripts\rollback.ps1
-
-# Or with specific image tag
-.\scripts\rollback.ps1 -ImageTag "previous"
-
-# Force rollback (skip confirmation)
-.\scripts\rollback.ps1 -Force
-```
-
-### Rollback Verification
-
-After rollback, verify:
-
-```powershell
-# Check container status
-docker ps
-
-# Check health endpoint
-Invoke-WebRequest -Uri http://localhost:8000/health
-
-# Check logs
-docker logs -f lolstonksrss
-```
-
-## Blue-Green Deployment
-
-### Overview
-
-Blue-green deployment maintains two identical production environments:
-- **Blue**: Currently active environment
-- **Green**: New version being deployed
-
-### Benefits
-
-- Zero-downtime deployment
-- Instant rollback capability
-- Safe testing before cutover
-- Reduced deployment risk
-
-### Implementation
-
-The deployment script (`scripts/deploy.ps1`) supports blue-green deployments:
-
-```powershell
-# Deploy to blue environment
-.\scripts\deploy.ps1 -Environment "blue"
-
-# Deploy to green environment
-.\scripts\deploy.ps1 -Environment "green"
-```
-
-### Traffic Switching
-
-After deploying to the inactive environment:
-
-1. **Verify new environment**
-   ```powershell
-   # Check health on green (port 8001)
-   Invoke-WebRequest -Uri http://localhost:8001/health
+1. Ensure master is stable (all CI checks passing)
+2. Create and push a version tag:
+   ```bash
+   git tag -a v2.1.0 -m "Release v2.1.0"
+   git push origin v2.1.0
    ```
+3. This automatically triggers:
+   - `release.yml` — creates a GitHub Release with auto-generated changelog
+   - `docker-publish.yml` — builds and pushes multi-platform Docker images to GHCR
 
-2. **Switch traffic** (choose one method)
+### What Gets Published
 
-   **Method A: Port forwarding change**
-   - Update reverse proxy to point to new port
-   - Switch port mappings: `docker stop lolstonksrss-blue`
+- Docker images tagged: `2.1.0`, `2.1`, `2`, `latest`, and the commit SHA
+- Multi-architecture: `linux/amd64` and `linux/arm64`
+- Build provenance attestation for supply chain security
 
-   **Method B: DNS switch**
-   - Update DNS records to point to new environment
-   - Wait for DNS propagation
+### Version Tags
 
-3. **Monitor for issues**
-   ```powershell
-   docker logs -f lolstonksrss-green
-   ```
+Follow [Semantic Versioning](https://semver.org/):
+- `vMAJOR.MINOR.PATCH` (e.g., `v2.1.0`)
+- Pre-release: `v2.1.0-beta.1`, `v2.1.0-rc.1`
 
-4. **Clean up old environment** (after verification)
-   ```powershell
-   docker stop lolstonksrss-blue
-   docker rm lolstonksrss-blue
-   ```
+## Container Management
 
-## Monitoring and Logging
+### Health Check
 
-### Container Logs
+The container includes a built-in health check on `/health`:
 
-```powershell
-# Follow logs in real-time
+```bash
+# Check container health
+docker inspect --format='{{.State.Health.Status}}' lolstonksrss
+
+# Manual health check
+curl http://localhost:8002/health
+```
+
+### Logs
+
+```bash
+# Follow logs
 docker logs -f lolstonksrss
 
 # Last 100 lines
 docker logs --tail 100 lolstonksrss
-
-# Logs with timestamps
-docker logs -t lolstonksrss
 ```
 
-### Deployment Logs
+Log rotation is configured in docker-compose.yml (max 10MB, 3 files).
 
-Deployment logs are stored in:
-- GitHub Actions workflow logs (web UI)
-- Server: `C:\lolstonksrss\logs\deploy-*.log`
-- Rollback logs: `C:\lolstonksrss\logs\rollback-*.log`
+### Updating
 
-### Health Monitoring
+```bash
+# Pull latest image
+docker pull ghcr.io/onestepat4time/lolstonks-rss:latest
 
-Create a monitoring script:
+# Restart with new image
+docker-compose down
+docker-compose up -d
+```
 
-```powershell
-# monitor.ps1
-while ($true) {
-    try {
-        $response = Invoke-WebRequest -Uri http://localhost:8000/health -UseBasicParsing -TimeoutSec 10
-        $data = $response.Content | ConvertFrom-Json
+### Backup
 
-        if ($data.status -eq "healthy") {
-            Write-Host "[$(Get-Date)] Service healthy" -ForegroundColor Green
-        } else {
-            Write-Host "[$(Get-Date)] Service unhealthy: $($data.status)" -ForegroundColor Yellow
-        }
-    } catch {
-        Write-Host "[$(Get-Date)] Service unreachable: $($_.Exception.Message)" -ForegroundColor Red
-    }
+The SQLite database is stored in the `data/` volume mount:
 
-    Start-Sleep -Seconds 60
-}
+```bash
+# Backup the database (container can stay running)
+cp data/articles.db data/articles.db.backup
 ```
 
 ## Troubleshooting
 
-### Common Issues
+### Container won't start
 
-#### 1. SSH Connection Failed
-
-**Symptoms:**
-- Workflow fails at "Verify SSH connection" step
-- Error: "Connection refused" or "Authentication failed"
-
-**Solutions:**
-```powershell
-# On Windows Server, check SSH service
-Get-Service sshd
-Start-Service sshd
-
-# Check firewall
-Get-NetFirewallRule -DisplayName "SSH"
-
-# Test SSH locally
-ssh localhost
-
-# Check authorized_keys
-cat C:\Users\$env:USERNAME\.ssh\authorized_keys
-
-# Check SSH logs
-Get-WinEvent -LogName OpenSSH/Operational -MaxEvents 50
-```
-
-#### 2. Docker Pull Failed
-
-**Symptoms:**
-- Workflow fails at "Pull new Docker image" step
-- Error: "denied" or "authentication required"
-
-**Solutions:**
-```powershell
-# Login to GHCR manually
-docker login ghcr.io
-
-# Verify credentials
-# Use GitHub PAT with `read:packages` scope
-
-# Check image exists
-# Visit: https://github.com/OneStepAt4time/lolstonks-rss/pkgs/container/lolstonksrss
-```
-
-#### 3. Container Won't Start
-
-**Symptoms:**
-- Container exits immediately after start
-- Health check fails
-
-**Solutions:**
-```powershell
-# Check container logs
+```bash
+# Check logs for errors
 docker logs lolstonksrss
 
-# Check if port is in use
-netstat -ano | Select-String ":8000"
-
-# Run container manually to debug
-docker run -it --rm lolstonksrss:latest /bin/bash
-
-# Check data directory permissions
-icacls C:\lolstonksrss\data
+# Verify port isn't in use
+# Linux/Mac:
+lsof -i :8002
+# Windows:
+netstat -ano | findstr :8002
 ```
 
-#### 4. Health Check Timeout
+### Health check failing
 
-**Symptoms:**
-- Deployment fails after health check attempts
-- Service not responding on port 8000
-
-**Solutions:**
-```powershell
-# Test health endpoint manually
-Invoke-WebRequest -Uri http://localhost:8000/health
-
-# Check if container is running
-docker ps
-
-# Check container logs for errors
-docker logs --tail 50 lolstonksrss
-
-# Verify port mapping
-docker port lolstonksrss
-
-# Increase health check timeout
-# Edit workflow: increase `sleep 45` to `sleep 90`
+```bash
+# Test health endpoint directly inside the container
+docker exec lolstonksrss python -c "import urllib.request; print(urllib.request.urlopen('http://localhost:8000/health').read())"
 ```
 
-#### 5. Rollback Failed
+### CORS errors in browser
 
-**Symptoms:**
-- Rollback doesn't restore previous version
-- No `:previous` image exists
+Ensure `ALLOWED_ORIGINS` in your `.env` or `docker-compose.yml` matches the URL you're accessing from. If accessing via `http://localhost:8002`, set `ALLOWED_ORIGINS=http://localhost:8002`.
 
-**Solutions:**
-```powershell
-# List available images
-docker images
+### Database issues
 
-# Manually tag previous version
-# Find previous image ID and tag it
-docker tag <IMAGE_ID> lolstonksrss:previous
-
-# Run rollback
-.\scripts\rollback.ps1 -Force
+```bash
+# Reset the database (articles will be re-fetched)
+docker-compose down
+rm data/articles.db
+docker-compose up -d
 ```
 
-## Security Best Practices
+### Docker image pull requires authentication
 
-### 1. SSH Security
-
-```powershell
-# Disable password authentication (key-only)
-# Edit: C:\ProgramData\ssh\sshd_config
-PasswordAuthentication no
-
-# Restrict allowed users
-AllowUsers deploy
-
-# Restart SSH service
-Restart-Service sshd
+```bash
+# Login to GHCR with a GitHub Personal Access Token (read:packages scope)
+echo $GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin
 ```
 
-### 2. Docker Security
+## CI/CD Workflows
 
-```powershell
-# Run as non-root user (already configured in Dockerfile)
-# Set resource limits
-docker update --memory="512m" --cpus="1.0" lolstonksrss
-
-# Use read-only root filesystem (advanced)
-docker run --read-only --tmpfs /tmp lolstonksrss:latest
-```
-
-### 3. Network Security
-
-```powershell
-# Isolate container network
-docker network create --driver bridge lolrss_isolated
-
-# Restrict inbound traffic
-New-NetFirewallRule -DisplayName "LoL Stonks RSS" `
-  -Direction Inbound -Protocol TCP -LocalPort 8000 `
-  -Action Allow -RemoteAddress "192.168.1.0/24"
-```
-
-### 4. Secrets Management
-
-- Never commit secrets to repository
-- Use GitHub Secrets for sensitive data
-- Rotate credentials regularly
-- Use environment-specific secrets (dev, staging, prod)
-- Limit secret access to necessary workflows
-
-## Performance Optimization
-
-### 1. Image Size Reduction
-
-Already implemented in Dockerfile:
-- Multi-stage build
-- Minimal base image (python:3.11-slim)
-- Non-root user
-- Optimized layer caching
-
-### 2. Deployment Speed
-
-- Use GitHub Actions cache for Docker layers
-- Parallel build for multiple architectures
-- Pre-pull images during low-traffic periods
-- Use layer caching in Buildx
-
-### 3. Container Performance
-
-```yaml
-# Add to docker-compose.yml for resource limits
-services:
-  lolstonksrss:
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 512M
-        reservations:
-          cpus: '0.5'
-          memory: 256M
-```
-
-## Backup and Disaster Recovery
-
-### Database Backup
-
-```powershell
-# Automated backup script
-$backupDir = "C:\lolstonksrss\backups\$(Get-Date -Format 'yyyyMMdd-HHmmss')"
-New-Item -Path $backupDir -ItemType Directory -Force
-
-# Stop container
-docker stop lolstonksrss
-
-# Backup database
-Copy-Item C:\lolstonksrss\data\articles.db $backupDir\
-
-# Start container
-docker start lolstonksrss
-
-# Compress backup
-Compress-Archive -Path $backupDir -DestinationPath "$backupDir.zip"
-```
-
-### Disaster Recovery Plan
-
-1. **Regular Backups**
-   - Daily automated database backups
-   - Weekly full application backups
-   - Store backups off-site
-
-2. **Documentation**
-   - Keep deployment documentation up-to-date
-   - Document all custom configurations
-   - Maintain runbook for common issues
-
-3. **Testing**
-   - Regular backup restoration tests
-   - Disaster recovery drills
-   - Rollback procedure validation
-
-## Maintenance
-
-### Regular Updates
-
-```powershell
-# Update Docker Desktop
-# Check for updates in Docker Desktop UI
-
-# Update base image
-docker pull python:3.11-slim
-
-# Rebuild application image
-cd C:\lolstonksrss
-docker build -t lolstonksrss:latest .
-```
-
-### Log Rotation
-
-```powershell
-# Configure Docker log rotation
-# Edit: C:\ProgramData\docker\config\daemon.json
-{
-  "log-driver": "json-file",
-  "log-opts": {
-    "max-size": "10m",
-    "max-file": "3"
-  }
-}
-
-# Restart Docker service
-Restart-Service docker
-```
-
-### Health Monitoring
-
-Set up automated monitoring:
-- Use Application Insights or similar
-- Configure alerting for health check failures
-- Monitor container resource usage
-- Track deployment success rate
-
-## Support and Resources
-
-### Documentation
-
-- [Main Documentation](./index.md)
-- [Windows Deployment Guide](./WINDOWS_DEPLOYMENT.md)
-- [Docker Guide](./DOCKER.md)
-- [Troubleshooting](./TROUBLESHOOTING.md)
-
-### External Resources
-
-- [GitHub Actions Documentation](https://docs.github.com/en/actions)
-- [Docker Documentation](https://docs.docker.com/)
-- [Windows Server Documentation](https://docs.microsoft.com/en-us/windows-server/)
-
-### Getting Help
-
-- Check GitHub Issues
-- Review deployment logs
-- Check container logs
-- Verify system requirements
-- Test with staging environment first
-
-## Quick Reference
-
-### Essential Commands
-
-```powershell
-# Deploy manually
-.\scripts\deploy.ps1 -Environment "blue"
-
-# Rollback
-.\scripts\rollback.ps1
-
-# Check status
-docker ps
-docker logs lolstonksrss
-
-# Health check
-Invoke-WebRequest -Uri http://localhost:8000/health
-
-# View feeds
-Invoke-WebRequest -Uri http://localhost:8000/feed.xml
-```
-
-### GitHub Workflow
-
-- **Workflow**: `.github/workflows/deploy-production.yml`
-- **Trigger**: Push to main/master or manual dispatch
-- **Duration**: ~5-10 minutes
-- **Timeout**: 600 seconds (10 minutes)
-
-### Ports
-
-- **Application**: 8000
-- **SSH**: 22
-- **Blue environment**: 8000
-- **Green environment**: 8001
-
-## Success Criteria
-
-Deployment is successful when:
-- [ ] Workflow completes without errors
-- [ ] Container is running on server
-- [ ] Health check returns "healthy"
-- [ ] All feed endpoints are accessible
-- [ ] Logs show no errors
-- [ ] Previous version is backed up as `:previous`
-
-## Next Steps
-
-After setting up automated deployment:
-1. Test deployment to staging environment
-2. Verify rollback mechanism
-3. Set up monitoring and alerting
-4. Document custom configurations
-5. Train team on deployment process
-6. Schedule regular maintenance
-7. Review and update documentation regularly
+| Workflow | File | Trigger | Purpose |
+|----------|------|---------|---------|
+| CI | `ci.yml` | Push/PR | Tests, linting, type checking |
+| Security Scan | `security-scan.yml` | Push/PR/schedule | Vulnerability scanning |
+| Deploy Frontend | `deploy-frontend.yml` | Push to master | Build and deploy frontend to GitHub Pages |
+| Publish News | `publish-news.yml` | Cron (15 min) | Fetch news, generate RSS, deploy to Pages |
+| Release | `release.yml` | Tag push (`v*.*.*`) | Create GitHub Release |
+| Docker Publish | `docker-publish.yml` | Called by release | Build and push Docker images to GHCR |
