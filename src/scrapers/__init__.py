@@ -4,7 +4,6 @@ Scrapers for fetching news from various LoL/TFT sources.
 This package provides a modular scraping architecture that supports:
 - RSS feed scraping for sites with structured feeds
 - HTML scraping for sites with structured HTML content
-- Selenium-based scraping for JavaScript-heavy sites
 - robots.txt compliance for legal web scraping
 
 All scrapers implement the BaseScraper interface and return standardized

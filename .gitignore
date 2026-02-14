@@ -71,11 +71,15 @@ desktop.ini
 
 # Coverage
 coverage.xml
+coverage.json
 *.cover
 .hypothesis/
 
 # Temporary files
 nul
+
+# Vite cache
+.vite/
 
 # AI agent temporary files (plans, research notes, debug logs, drafts)
 tmp/
