@@ -20,6 +20,7 @@ function App() {
             <Routes>
               <Route path="/" element={<CatalogPage />} />
               <Route path="/read/:locale" element={<ReaderPage />} />
+              <Route path="/read/:game/:locale" element={<ReaderPage />} />
               <Route path="/feeds" element={<Navigate to="/" replace />} />
               <Route path="/all-feeds" element={<Navigate to="/" replace />} />
               <Route path="*" element={<NotFoundPage />} />

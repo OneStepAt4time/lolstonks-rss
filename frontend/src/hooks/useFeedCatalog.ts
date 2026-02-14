@@ -1,12 +1,18 @@
 import { useState, useMemo, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   getFeedCatalog,
   searchFeeds,
   REGION_LOCALES,
+  GAMES,
   type Region,
   type FeedCatalog,
   type LocaleGroup,
+  type GameType,
 } from '../lib/feeds-catalog';
+import type { GameFilter } from '../types/feed';
+
+const VALID_GAMES = new Set<string>(Object.keys(GAMES));
 
 interface UseFeedCatalogReturn {
   catalog: FeedCatalog;
@@ -14,6 +20,8 @@ interface UseFeedCatalogReturn {
   setQuery: (q: string) => void;
   region: Region;
   setRegion: (r: Region) => void;
+  game: GameFilter;
+  setGame: (g: GameFilter) => void;
   expandedLocales: Set<string>;
   toggleLocale: (locale: string) => void;
   expandAll: () => void;
@@ -27,9 +35,26 @@ interface UseFeedCatalogReturn {
 const catalog = getFeedCatalog();
 
 export function useFeedCatalog(): UseFeedCatalogReturn {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState('');
   const [region, setRegion] = useState<Region>('all');
   const [expandedLocales, setExpandedLocales] = useState<Set<string>>(new Set());
+
+  const gameParam = searchParams.get('game');
+  const game: GameFilter = gameParam && VALID_GAMES.has(gameParam)
+    ? (gameParam as GameType)
+    : 'all';
+
+  const setGame = useCallback((g: GameFilter) => {
+    setSearchParams((prev) => {
+      if (g === 'all') {
+        prev.delete('game');
+      } else {
+        prev.set('game', g);
+      }
+      return prev;
+    }, { replace: true });
+  }, [setSearchParams]);
 
   const filteredLocales = useMemo(() => {
     let locales = catalog.byLocale;
@@ -63,12 +88,13 @@ export function useFeedCatalog(): UseFeedCatalogReturn {
     return mainFeedVisible + filteredLocales.length;
   }, [filteredLocales, query]);
 
-  const hasActiveFilters = query.trim().length > 0 || region !== 'all';
+  const hasActiveFilters = query.trim().length > 0 || region !== 'all' || game !== 'all';
 
   const clearFilters = useCallback(() => {
     setQuery('');
     setRegion('all');
-  }, []);
+    setGame('all');
+  }, [setGame]);
 
   const toggleLocale = useCallback((locale: string) => {
     setExpandedLocales((prev) => {
@@ -96,6 +122,8 @@ export function useFeedCatalog(): UseFeedCatalogReturn {
     setQuery,
     region,
     setRegion,
+    game,
+    setGame,
     expandedLocales,
     toggleLocale,
     expandAll,

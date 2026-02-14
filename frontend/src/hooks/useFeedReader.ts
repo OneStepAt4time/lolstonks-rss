@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { fetchFeed } from '../lib/feed-fetcher';
-import { useStore, getCachedFeed } from '../store';
+import { useStore, getCachedFeed, feedCacheKey } from '../store';
 import type { RSSArticle, FeedMeta, FeedStatus } from '../types/articles';
+import type { GameType } from '../types/feed';
 
 const PAGE_SIZE = 20;
 
@@ -22,7 +23,7 @@ interface UseFeedReaderReturn {
   retry: () => void;
 }
 
-export function useFeedReader(locale: string): UseFeedReaderReturn {
+export function useFeedReader(locale: string, game?: GameType): UseFeedReaderReturn {
   const [status, setStatus] = useState<FeedStatus>('idle');
   const [error, setError] = useState<string | null>(null);
   const [articles, setArticles] = useState<RSSArticle[]>([]);
@@ -34,7 +35,8 @@ export function useFeedReader(locale: string): UseFeedReaderReturn {
   const setFeedData = useStore((s) => s.setFeedData);
 
   const loadFeed = useCallback(async () => {
-    const cached = getCachedFeed(locale);
+    const key = feedCacheKey(locale, game);
+    const cached = getCachedFeed(key);
     if (cached) {
       setArticles(cached.articles);
       setMeta(cached.meta);
@@ -45,16 +47,16 @@ export function useFeedReader(locale: string): UseFeedReaderReturn {
     setStatus('loading');
     setError(null);
     try {
-      const feed = await fetchFeed(locale);
+      const feed = await fetchFeed(locale, game);
       setArticles(feed.articles);
       setMeta(feed.meta);
-      setFeedData(locale, feed.articles, feed.meta);
+      setFeedData(key, feed.articles, feed.meta);
       setStatus('success');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load feed');
       setStatus('error');
     }
-  }, [locale, setFeedData]);
+  }, [locale, game, setFeedData]);
 
   useEffect(() => {
     setActiveCategory(null);

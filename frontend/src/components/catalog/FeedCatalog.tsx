@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { SearchBar } from './SearchBar';
+import { GameTabs } from './GameTabs';
 import { RegionTabs } from './RegionTabs';
 import { StatsBar } from './StatsBar';
 import { FeedRow } from './FeedRow';
@@ -14,6 +15,8 @@ export const FeedCatalog = () => {
     setQuery,
     region,
     setRegion,
+    game,
+    setGame,
     expandedLocales,
     toggleLocale,
     expandAll,
@@ -28,6 +31,9 @@ export const FeedCatalog = () => {
 
   return (
     <div className="space-y-6">
+      {/* Game Tabs */}
+      <GameTabs activeGame={game} onChange={setGame} />
+
       {/* Search */}
       <SearchBar value={query} onChange={setQuery} />
 
@@ -68,6 +74,7 @@ export const FeedCatalog = () => {
       <StatsBar
         totalFeeds={catalog.stats.totalFeeds}
         totalLocales={catalog.stats.localeCount}
+        totalGames={catalog.stats.gameCount}
         visibleCount={visibleFeedCount}
         hasFilters={hasActiveFilters}
       />
@@ -90,6 +97,7 @@ export const FeedCatalog = () => {
               localeGroup={lg}
               isExpanded={expandedLocales.has(lg.locale)}
               onToggle={() => toggleLocale(lg.locale)}
+              activeGame={game}
             />
           ))}
         </div>

@@ -16,7 +16,7 @@ interface UIStore {
 
   // Feed reader cache
   feeds: Record<string, CachedFeed>;
-  setFeedData: (locale: string, articles: RSSArticle[], meta: FeedMeta) => void;
+  setFeedData: (cacheKey: string, articles: RSSArticle[], meta: FeedMeta) => void;
   clearFeedCache: () => void;
 }
 
@@ -33,18 +33,24 @@ export const useStore = create<UIStore>()((set) => ({
   hideToast: () => set({ toast: null }),
 
   feeds: {},
-  setFeedData: (locale, articles, meta) =>
+  setFeedData: (cacheKey, articles, meta) =>
     set((state) => ({
       feeds: {
         ...state.feeds,
-        [locale]: { articles, meta, fetchedAt: Date.now() },
+        [cacheKey]: { articles, meta, fetchedAt: Date.now() },
       },
     })),
   clearFeedCache: () => set({ feeds: {} }),
 }));
 
-export function getCachedFeed(locale: string): CachedFeed | null {
-  const feed = useStore.getState().feeds[locale];
+export function feedCacheKey(locale: string, game?: string, category?: string): string {
+  const parts = [game ?? 'lol', locale];
+  if (category) parts.push(category);
+  return parts.join(':');
+}
+
+export function getCachedFeed(cacheKey: string): CachedFeed | null {
+  const feed = useStore.getState().feeds[cacheKey];
   if (!feed) return null;
   if (Date.now() - feed.fetchedAt > CACHE_TTL) return null;
   return feed;

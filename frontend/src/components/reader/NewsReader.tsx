@@ -5,11 +5,14 @@ import { CategoryTabs } from './CategoryTabs';
 import { ArticleGrid } from './ArticleGrid';
 import { EmptyState } from './EmptyState';
 
+import type { GameType } from '../../types/feed';
+
 interface NewsReaderProps {
   locale: string;
+  game?: GameType;
 }
 
-export const NewsReader = ({ locale }: NewsReaderProps) => {
+export const NewsReader = ({ locale, game }: NewsReaderProps) => {
   const {
     visibleArticles,
     filteredArticles,
@@ -24,7 +27,7 @@ export const NewsReader = ({ locale }: NewsReaderProps) => {
     remainingCount,
     loadMore,
     retry,
-  } = useFeedReader(locale);
+  } = useFeedReader(locale, game);
 
   const clearFilters = () => {
     setActiveCategory(null);
@@ -33,7 +36,7 @@ export const NewsReader = ({ locale }: NewsReaderProps) => {
 
   return (
     <div className="space-y-6">
-      <FeedHeader locale={locale} meta={meta} />
+      <FeedHeader locale={locale} game={game} meta={meta} />
 
       {/* Search + Category filters */}
       {status === 'success' && meta && (
