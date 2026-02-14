@@ -16,7 +16,6 @@ from src.models import SourceCategory
 from src.scrapers.base import BaseScraper, ScrapingConfig, ScrapingDifficulty
 from src.scrapers.html import HTMLScraper
 from src.scrapers.rss import RSSScraper
-from src.scrapers.selenium import SeleniumScraper
 
 logger = logging.getLogger(__name__)
 
@@ -227,7 +226,8 @@ SCRAPER_CONFIGS: Final[dict[str, ScrapingConfig]] = {
 SCRAPER_CLASSES: Final[dict[ScrapingDifficulty, type[BaseScraper]]] = {
     ScrapingDifficulty.EASY: RSSScraper,
     ScrapingDifficulty.MEDIUM: HTMLScraper,
-    ScrapingDifficulty.HARD: SeleniumScraper,
+    # HARD sources (Selenium) are not supported — use HTMLScraper as fallback
+    ScrapingDifficulty.HARD: HTMLScraper,
 }
 
 # =============================================================================
@@ -302,7 +302,7 @@ def get_scraper(source_id: str, locale: str = "en-us") -> BaseScraper:
         locale: Locale code for articles (e.g., "en-us", "ko-kr")
 
     Returns:
-        Instantiated scraper object (RSSScraper, HTMLScraper, or SeleniumScraper)
+        Instantiated scraper object (RSSScraper or HTMLScraper)
 
     Raises:
         ValueError: If source_id is not found in SCRAPER_CONFIGS
@@ -371,22 +371,3 @@ def get_sources_by_difficulty(difficulty: ScrapingDifficulty) -> list[str]:
         for source_id, config in SCRAPER_CONFIGS.items()
         if config.difficulty == difficulty
     ]
-
-
-def is_selenium_required(source_id: str) -> bool:
-    """
-    Check if a source requires Selenium for scraping.
-
-    Args:
-        source_id: Source identifier to check
-
-    Returns:
-        True if source requires Selenium, False otherwise
-
-    Raises:
-        ValueError: If source_id is not found in registry
-    """
-    if source_id not in SCRAPER_CONFIGS:
-        raise ValueError(f"Unknown source: {source_id}")
-
-    return SCRAPER_CONFIGS[source_id].requires_selenium

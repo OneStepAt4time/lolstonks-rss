@@ -63,7 +63,6 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "api: marks API endpoint tests")
     config.addinivalue_line("markers", "rss: marks RSS validation tests")
     config.addinivalue_line("markers", "scraper: marks scraper tests")
-    config.addinivalue_line("markers", "selenium: marks Selenium tests (requires Chrome)")
     config.addinivalue_line("markers", "redis: marks Redis integration tests")
 
 
@@ -130,56 +129,6 @@ def mock_rss_feed():
         </channel>
     </rss>
     """
-
-
-@pytest.fixture
-def mock_selenium_driver():
-    """Mock Selenium WebDriver for Selenium scraper testing."""
-
-    class MockWebElement:
-        def __init__(self, tag: str = "div", text: str = "", attributes: dict | None = None):
-            self.tag_name = tag
-            self._text = text
-            self._attributes = attributes or {}
-
-        @property
-        def text(self):
-            return self._text
-
-        def get_attribute(self, name: str):
-            return self._attributes.get(name)
-
-        def find_element(self, by, value):
-            return MockWebElement()
-
-        def find_elements(self, by, value):
-            return [MockWebElement()]
-
-    class MockWebDriver:
-        def __init__(self):
-            self.current_url = "https://example.com"
-            self._page_source = "<html><body>Test content</body></html>"
-
-        @property
-        def page_source(self):
-            return self._page_source
-
-        def get(self, url):
-            self.current_url = url
-
-        def find_element(self, by, value):
-            return MockWebElement()
-
-        def find_elements(self, by, value):
-            return [MockWebElement()]
-
-        def quit(self):
-            pass
-
-        def close(self):
-            pass
-
-    return MockWebDriver()
 
 
 @pytest.fixture
