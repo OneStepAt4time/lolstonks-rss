@@ -11,6 +11,7 @@ const REGIONS: { key: Region; label: string }[] = [
   { key: 'europe', label: 'Europe' },
   { key: 'asia', label: 'Asia' },
   { key: 'mena', label: 'MENA' },
+  { key: 'oceania', label: 'Oceania' },
 ];
 
 export const RegionTabs = ({ activeRegion, onChange }: RegionTabsProps) => {

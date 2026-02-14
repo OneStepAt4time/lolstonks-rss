@@ -218,6 +218,8 @@ async def test_feed_titles_localized() -> None:
         elif title == "League of Legends News" and locale not in [
             "en-us",
             "en-gb",
+            "en-au",
+            "en-sg",
             "ja-jp",
             "ko-kr",
             "zh-cn",
@@ -250,6 +252,8 @@ async def test_feed_descriptions_localized() -> None:
         if description == "Latest League of Legends news and updates" and locale not in [
             "en-us",
             "en-gb",
+            "en-au",
+            "en-sg",
         ]:
             # These locales have fallback English, may need localization
             missing_descriptions.append(locale)

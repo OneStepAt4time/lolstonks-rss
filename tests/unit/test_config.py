@@ -257,9 +257,9 @@ class TestMultiLanguageSettings:
         assert "Ultime notizie" in settings.feed_descriptions["it-it"]
 
     def test_default_supported_locales(self) -> None:
-        """Test default supported locales - all 20 Riot locales."""
+        """Test default supported locales - all 25 Riot locales."""
         settings = Settings()
-        # After Bug #2 fix, defaults to all 20 RIOT_LOCALES
+        # Defaults to all RIOT_LOCALES (25 locales including 5 new ones)
         expected_locales = [
             "en-us",
             "en-gb",
@@ -281,6 +281,11 @@ class TestMultiLanguageSettings:
             "th-th",
             "id-id",
             "ph-ph",
+            "cs-cz",
+            "el-gr",
+            "en-au",
+            "en-sg",
+            "hu-hu",
         ]
         assert settings.supported_locales == expected_locales
 

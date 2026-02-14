@@ -1,14 +1,31 @@
 """
-Generate RSS 2.0 feeds for GitHub Pages deployment.
+Generate RSS 2.0 feeds for GitHub Pages deployment (multi-game edition).
 
 This script fetches articles from the database and generates RSS feeds for all
-supported Riot locales. It generates:
-- feed.xml (all articles, all languages)
-- feed/{locale}.xml (articles for each of 20 supported locales)
+supported Riot games (LoL, TFT, Wild Rift) across all supported locales, with
+per-category sub-feeds. It generates:
 
-Supported locales (20):
+Global feed:
+- feed.xml (all articles, all games, all locales)
+
+LoL feeds (backwards-compatible):
+- feed/{locale}.xml (all LoL articles per locale)
+- feed/lol/{locale}/{category}.xml (LoL per category per locale)
+
+TFT feeds:
+- feed/tft/{locale}.xml (all TFT articles per locale)
+- feed/tft/{locale}/{category}.xml (TFT per category per locale)
+
+Wild Rift feeds:
+- feed/wildrift/{locale}.xml (all Wild Rift articles per locale)
+- feed/wildrift/{locale}/{category}.xml (Wild Rift per category per locale)
+
+Empty feeds (0 articles) are skipped and not written to disk.
+
+Supported locales (25):
 en-us, en-gb, es-es, es-mx, fr-fr, de-de, it-it, pt-br, ru-ru, tr-tr,
-pl-pl, ja-jp, ko-kr, zh-cn, zh-tw, ar-ae, vi-vn, th-th, id-id, ph-ph
+pl-pl, ja-jp, ko-kr, zh-cn, zh-tw, ar-ae, vi-vn, th-th, id-id, ph-ph,
+cs-cz, el-gr, en-au, en-sg, hu-hu
 
 Usage:
     python scripts/generate_rss_feeds.py
@@ -29,13 +46,20 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from src.config import (  # noqa: E402
+    CATEGORY_SLUG_TO_DISPLAY,
     FEED_DESCRIPTIONS,
     FEED_TITLES,
+    GAME_CATEGORIES,
+    GAME_DOMAINS,
     RIOT_LOCALES,
+    TFT_FEED_DESCRIPTIONS,
+    TFT_FEED_TITLES,
+    WILDRIFT_FEED_DESCRIPTIONS,
+    WILDRIFT_FEED_TITLES,
     get_settings,
 )
 from src.database import ArticleRepository  # noqa: E402
-from src.models import ArticleSource  # noqa: E402
+from src.models import Article, ArticleSource  # noqa: E402
 from src.rss.generator import RSSFeedGenerator  # noqa: E402
 
 # Configure logging
@@ -46,21 +70,10 @@ logging.basicConfig(
 )
 logger: Final[logging.Logger] = logging.getLogger(__name__)
 
+# GitHub Pages base URL
+GITHUB_PAGES_URL: Final[str] = "https://onestepat4time.github.io/lolstonks-rss"
 
-# Feed configuration for GitHub Pages
-# Dynamically generated for all supported Riot locales
-# Note: ArticleSource.create() is called at runtime to avoid import-time issues
-
-# Base configuration for the "all" feed
-FEED_CONFIG_ALL: Final[dict] = {
-    "filename": "feed.xml",
-    "title": "League of Legends News",
-    "description": "Latest League of Legends news and updates",
-    "language": "en",
-    "source": None,
-}
-
-# Locale to language code mapping for RSS feeds
+# Locale to RSS language code mapping
 LOCALE_TO_LANG_CODE: Final[dict[str, str]] = {
     "en-us": "en",
     "en-gb": "en",
@@ -82,78 +95,187 @@ LOCALE_TO_LANG_CODE: Final[dict[str, str]] = {
     "th-th": "th",
     "id-id": "id",
     "ph-ph": "tl",  # Filipino language code
+    "cs-cz": "cs",
+    "el-gr": "el",
+    "en-au": "en",
+    "en-sg": "en",
+    "hu-hu": "hu",
 }
 
-# Build feed configurations dynamically for all locales
-FEED_CONFIGS: Final[dict[str, dict]] = {
-    "all": FEED_CONFIG_ALL,
-    **{
-        locale: {
-            "filename": f"feed/{locale}.xml",
-            "title": FEED_TITLES.get(locale, "League of Legends News"),
-            "description": FEED_DESCRIPTIONS.get(
-                locale, "Latest League of Legends news and updates"
-            ),
-            "language": LOCALE_TO_LANG_CODE.get(locale, "en"),
-            "source_id": "lol",
-            "locale": locale,
-        }
-        for locale in RIOT_LOCALES
-    },
+# Game-specific feed title/description accessors keyed by source_id
+_GAME_FEED_TITLES: Final[dict[str, dict[str, str]]] = {
+    "lol": FEED_TITLES,
+    "tft": TFT_FEED_TITLES,
+    "wildrift": WILDRIFT_FEED_TITLES,
+}
+
+_GAME_FEED_DESCRIPTIONS: Final[dict[str, dict[str, str]]] = {
+    "lol": FEED_DESCRIPTIONS,
+    "tft": TFT_FEED_DESCRIPTIONS,
+    "wildrift": WILDRIFT_FEED_DESCRIPTIONS,
+}
+
+# Default titles/descriptions when locale is not found in the mapping
+_GAME_DEFAULT_TITLES: Final[dict[str, str]] = {
+    "lol": "League of Legends News",
+    "tft": "Teamfight Tactics News",
+    "wildrift": "Wild Rift News",
+}
+
+_GAME_DEFAULT_DESCRIPTIONS: Final[dict[str, str]] = {
+    "lol": "Latest League of Legends news and updates",
+    "tft": "Latest Teamfight Tactics news and updates",
+    "wildrift": "Latest Wild Rift news and updates",
+}
+
+# Human-readable game names for category feed titles
+_GAME_DISPLAY_NAMES: Final[dict[str, str]] = {
+    "lol": "League of Legends",
+    "tft": "Teamfight Tactics",
+    "wildrift": "Wild Rift",
+}
+
+# Locale-specific feed links for LoL (existing news page links)
+_LOL_FEED_LINKS: Final[dict[str, str]] = {
+    "en-us": "https://www.leagueoflegends.com/news",
+    "en-gb": "https://www.leagueoflegends.com/en-gb/news/",
+    "es-es": "https://www.leagueoflegends.com/es-es/news/",
+    "es-mx": "https://www.leagueoflegends.com/es-mx/news/",
+    "fr-fr": "https://www.leagueoflegends.com/fr-fr/news/",
+    "de-de": "https://www.leagueoflegends.com/de-de/news/",
+    "it-it": "https://www.leagueoflegends.com/it-it/news/",
+    "pt-br": "https://www.leagueoflegends.com/pt-br/news/",
+    "ru-ru": "https://www.leagueoflegends.com/ru-ru/news/",
+    "tr-tr": "https://www.leagueoflegends.com/tr-tr/news/",
+    "pl-pl": "https://www.leagueoflegends.com/pl-pl/news/",
+    "ja-jp": "https://www.leagueoflegends.com/ja-jp/news/",
+    "ko-kr": "https://www.leagueoflegends.com/ko-kr/news/",
+    "zh-cn": "https://www.leagueoflegends.com/zh-cn/news/",
+    "zh-tw": "https://www.leagueoflegends.com/zh-tw/news/",
+    "ar-ae": "https://www.leagueoflegends.com/ar-ae/news/",
+    "vi-vn": "https://www.leagueoflegends.com/vi-vn/news/",
+    "th-th": "https://www.leagueoflegends.com/th-th/news/",
+    "id-id": "https://www.leagueoflegends.com/id-id/news/",
+    "ph-ph": "https://www.leagueoflegends.com/ph-ph/news/",
+    "cs-cz": "https://www.leagueoflegends.com/cs-cz/news/",
+    "el-gr": "https://www.leagueoflegends.com/el-gr/news/",
+    "en-au": "https://www.leagueoflegends.com/en-au/news/",
+    "en-sg": "https://www.leagueoflegends.com/en-sg/news/",
+    "hu-hu": "https://www.leagueoflegends.com/hu-hu/news/",
 }
 
 
-# GitHub Pages base URL
-GITHUB_PAGES_URL = "https://onestepat4time.github.io/lolstonks-rss"
-
-
-def create_feed_generators() -> dict[str, RSSFeedGenerator]:
+def _get_feed_link(game_id: str, locale: str) -> str:
     """
-    Create RSS feed generators for all supported locales.
+    Build the website news link for a given game and locale.
+
+    For LoL, uses the curated _LOL_FEED_LINKS mapping. For TFT and Wild Rift,
+    constructs the link from GAME_DOMAINS.
+
+    Args:
+        game_id: Game identifier ("lol", "tft", or "wildrift").
+        locale: Riot locale code (e.g., "en-us").
 
     Returns:
-        Dictionary mapping language codes to their generators
+        URL to the news page for the game and locale.
     """
-    generators = {}
+    if game_id == "lol":
+        return _LOL_FEED_LINKS.get(locale, f"{GAME_DOMAINS['lol']}/{locale}/news/")
+    domain = GAME_DOMAINS.get(game_id, GAME_DOMAINS["lol"])
+    return f"{domain}/{locale}/news/"
 
-    # Build locale-specific feed links
-    locale_feed_links: dict[str, str] = {
-        "en-us": "https://www.leagueoflegends.com/news",
-        "en-gb": "https://www.leagueoflegends.com/en-gb/news/",
-        "es-es": "https://www.leagueoflegends.com/es-es/news/",
-        "es-mx": "https://www.leagueoflegends.com/es-mx/news/",
-        "fr-fr": "https://www.leagueoflegends.com/fr-fr/news/",
-        "de-de": "https://www.leagueoflegends.com/de-de/news/",
-        "it-it": "https://www.leagueoflegends.com/it-it/news/",
-        "pt-br": "https://www.leagueoflegends.com/pt-br/news/",
-        "ru-ru": "https://www.leagueoflegends.com/ru-ru/news/",
-        "tr-tr": "https://www.leagueoflegends.com/tr-tr/news/",
-        "pl-pl": "https://www.leagueoflegends.com/pl-pl/news/",
-        "ja-jp": "https://www.leagueoflegends.com/ja-jp/news/",
-        "ko-kr": "https://www.leagueoflegends.com/ko-kr/news/",
-        "zh-cn": "https://www.leagueoflegends.com/zh-cn/news/",
-        "zh-tw": "https://www.leagueoflegends.com/zh-tw/news/",
-        "ar-ae": "https://www.leagueoflegends.com/ar-ae/news/",
-        "vi-vn": "https://www.leagueoflegends.com/vi-vn/news/",
-        "th-th": "https://www.leagueoflegends.com/th-th/news/",
-        "id-id": "https://www.leagueoflegends.com/id-id/news/",
-        "ph-ph": "https://www.leagueoflegends.com/ph-ph/news/",
-    }
 
-    # Create generator for each locale's language code
-    for locale, feed_link in locale_feed_links.items():
-        lang_code = LOCALE_TO_LANG_CODE.get(locale, "en")
-        if lang_code not in generators:
-            generators[lang_code] = RSSFeedGenerator(
-                feed_title=FEED_TITLES.get(locale, "League of Legends News"),
-                feed_link=feed_link,
-                feed_description=FEED_DESCRIPTIONS.get(
-                    locale, "Latest news and updates from League of Legends"
-                ),
-                language=lang_code,
-            )
+def _get_feed_title(game_id: str, locale: str) -> str:
+    """
+    Get the localized feed title for a game and locale.
 
-    return generators
+    Args:
+        game_id: Game identifier ("lol", "tft", or "wildrift").
+        locale: Riot locale code.
+
+    Returns:
+        Localized feed title string.
+    """
+    titles = _GAME_FEED_TITLES.get(game_id, {})
+    return titles.get(locale, _GAME_DEFAULT_TITLES.get(game_id, "News"))
+
+
+def _get_feed_description(game_id: str, locale: str) -> str:
+    """
+    Get the localized feed description for a game and locale.
+
+    Args:
+        game_id: Game identifier ("lol", "tft", or "wildrift").
+        locale: Riot locale code.
+
+    Returns:
+        Localized feed description string.
+    """
+    descriptions = _GAME_FEED_DESCRIPTIONS.get(game_id, {})
+    return descriptions.get(
+        locale, _GAME_DEFAULT_DESCRIPTIONS.get(game_id, "Latest news and updates")
+    )
+
+
+def _build_category_feed_title(game_id: str, category_display: str, locale: str) -> str:
+    """
+    Build a category-specific feed title.
+
+    Format: "{Game Display Name} {Category} - {Locale Title}"
+    Example: "League of Legends Game Updates - English (US)"
+
+    Args:
+        game_id: Game identifier ("lol", "tft", or "wildrift").
+        category_display: Human-readable category name (e.g., "Game Updates").
+        locale: Riot locale code for the locale title suffix.
+
+    Returns:
+        Formatted category feed title.
+    """
+    game_name = _GAME_DISPLAY_NAMES.get(game_id, game_id)
+    locale_title = _get_feed_title(game_id, locale)
+    return f"{game_name} {category_display} - {locale_title}"
+
+
+def _filter_by_category(articles: list[Article], category_display: str) -> list[Article]:
+    """
+    Filter articles whose categories list contains the given display name.
+
+    Args:
+        articles: List of articles to filter.
+        category_display: Display name to match (e.g., "Game Updates", "Dev").
+
+    Returns:
+        Filtered list of articles matching the category.
+    """
+    return [a for a in articles if category_display in a.categories]
+
+
+def _write_feed(
+    feed_path: Path,
+    generator: RSSFeedGenerator,
+    articles: list[Article],
+    feed_url: str,
+) -> int | None:
+    """
+    Generate and write an RSS feed to disk if articles are non-empty.
+
+    Args:
+        feed_path: Filesystem path for the output XML file.
+        generator: Configured RSSFeedGenerator instance.
+        articles: Articles to include in the feed.
+        feed_url: Self-referencing URL for the feed.
+
+    Returns:
+        File size in bytes if written, None if skipped (empty feed).
+    """
+    if not articles:
+        return None
+
+    feed_path.parent.mkdir(parents=True, exist_ok=True)
+    feed_xml = generator.generate_feed(articles, feed_url)
+    feed_path.write_text(feed_xml, encoding="utf-8")
+    return feed_path.stat().st_size
 
 
 async def generate_feeds(
@@ -162,22 +284,33 @@ async def generate_feeds(
     base_url: str | None = None,
 ) -> dict[str, int]:
     """
-    Generate all RSS feeds from database articles.
+    Generate all RSS feeds from database articles (multi-game, per-category).
+
+    Produces the following feed hierarchy:
+    - feed.xml                                  (global: all games, all locales)
+    - feed/{locale}.xml                         (LoL per locale, backwards-compatible)
+    - feed/lol/{locale}/{category}.xml          (LoL per category per locale)
+    - feed/tft/{locale}.xml                     (TFT all categories per locale)
+    - feed/tft/{locale}/{category}.xml          (TFT per category per locale)
+    - feed/wildrift/{locale}.xml                (Wild Rift all categories per locale)
+    - feed/wildrift/{locale}/{category}.xml     (Wild Rift per category per locale)
+
+    Empty feeds (0 articles) are skipped entirely.
 
     Args:
-        output_dir: Directory where feed files will be saved
-        limit: Maximum number of articles per feed
-        base_url: Base URL for feed links (default: GITHUB_PAGES_URL)
+        output_dir: Directory where feed files will be saved.
+        limit: Maximum number of articles per feed.
+        base_url: Base URL for feed links (default: GITHUB_PAGES_URL).
 
     Returns:
-        Dictionary mapping feed file paths to their sizes in bytes
+        Dictionary mapping feed file paths to their sizes in bytes.
 
     Raises:
-        OSError: If directory creation or file write fails
-        Exception: If database query fails or feed generation fails
+        OSError: If directory creation or file write fails.
+        Exception: If database query fails or feed generation fails.
     """
     logger.info("=" * 60)
-    logger.info("RSS Feed Generator for GitHub Pages")
+    logger.info("RSS Feed Generator for GitHub Pages (Multi-Game)")
     logger.info("=" * 60)
     logger.info(f"Generating RSS feeds with up to {limit} articles per feed...")
 
@@ -201,62 +334,151 @@ async def generate_feeds(
         logger.error(f"Failed to create output directory: {e}")
         raise
 
-    # Create feed subdirectory
-    feed_dir = output_path / "feed"
+    # Track generated feeds
+    generated: dict[str, int] = {}
+    skipped_count = 0
+
+    # ------------------------------------------------------------------ #
+    # 1. Global feed: feed.xml (all articles, all games)
+    # ------------------------------------------------------------------ #
+    logger.info("Generating global feed (all games, all locales)...")
     try:
-        feed_dir.mkdir(parents=True, exist_ok=True)
-    except OSError as e:
-        logger.error(f"Failed to create feed subdirectory: {e}")
+        all_articles = await repository.get_latest(limit=limit)
+        logger.info(f"Fetched {len(all_articles)} total articles for global feed")
+
+        global_generator = RSSFeedGenerator(
+            feed_title="League of Legends News",
+            feed_link="https://www.leagueoflegends.com/news",
+            feed_description="Latest League of Legends news and updates",
+            language="en",
+        )
+
+        feed_filename = "feed.xml"
+        feed_path = output_path / feed_filename
+        feed_url = f"{feed_base_url}/{feed_filename}"
+        size = _write_feed(feed_path, global_generator, all_articles, feed_url)
+
+        if size is not None:
+            generated[str(feed_path)] = size
+            logger.info(f"Global feed saved: {feed_path.absolute()} ({size / 1024:.2f} KB)")
+        else:
+            skipped_count += 1
+            logger.info("Global feed skipped (0 articles)")
+    except Exception as e:
+        logger.error(f"Failed to generate global feed: {e}")
         raise
 
-    # Get generators
-    generators = create_feed_generators()
+    # ------------------------------------------------------------------ #
+    # 2. Per-game, per-locale, per-category feeds
+    # ------------------------------------------------------------------ #
+    games = ["lol", "tft", "wildrift"]
 
-    # Track generated feeds
-    generated = {}
+    for game_id in games:
+        categories = GAME_CATEGORIES.get(game_id, [])
+        logger.info(
+            f"Generating feeds for {_GAME_DISPLAY_NAMES.get(game_id, game_id)} "
+            f"({len(RIOT_LOCALES)} locales, {len(categories)} categories)..."
+        )
 
-    # Generate feeds according to FEED_CONFIGS
-    for feed_key, config in FEED_CONFIGS.items():
-        logger.info(f"Generating {feed_key} feed...")
+        for locale in RIOT_LOCALES:
+            # -- Fetch all articles for this (game, locale) combination -- #
+            source = ArticleSource.create(game_id, locale)
+            try:
+                locale_articles = await repository.get_latest(limit=limit, source=str(source))
+            except Exception as e:
+                logger.error(f"Failed to fetch articles for {game_id}:{locale}: {e}")
+                raise
 
-        try:
-            # Fetch articles
-            source_id = config.get("source_id")
-            locale = config.get("locale")
-            if source_id and locale:
-                source = ArticleSource.create(source_id, locale)
-                articles = await repository.get_latest(limit=limit, source=str(source))
-                logger.info(f"Fetched {len(articles)} articles for {source}")
+            lang_code = LOCALE_TO_LANG_CODE.get(locale, "en")
+            feed_link = _get_feed_link(game_id, locale)
+            base_title = _get_feed_title(game_id, locale)
+            base_description = _get_feed_description(game_id, locale)
+
+            # ---------------------------------------------------------- #
+            # 2a. Combined locale feed (all categories for this game+locale)
+            # ---------------------------------------------------------- #
+            if game_id == "lol":
+                # Backwards-compatible path: feed/{locale}.xml
+                feed_filename = f"feed/{locale}.xml"
             else:
-                articles = await repository.get_latest(limit=limit)
-                logger.info(f"Fetched {len(articles)} total articles")
+                # New path: feed/{game}/{locale}.xml
+                feed_filename = f"feed/{game_id}/{locale}.xml"
 
-            # Select generator based on language
-            generator = generators[config["language"]]
-
-            # Build feed URL
-            feed_url = f"{feed_base_url}/{config['filename']}"
-
-            # Generate RSS XML (articles are already filtered by source if provided)
-            feed_xml = generator.generate_feed(articles, feed_url)
-
-            # Determine output path
-            feed_path = output_path / config["filename"]
-
-            # Write to file
-            feed_path.write_text(feed_xml, encoding="utf-8")
-            generated[str(feed_path)] = feed_path.stat().st_size
-
-            logger.info(
-                f"Feed saved: {feed_path.absolute()} " f"({feed_path.stat().st_size / 1024:.2f} KB)"
+            locale_generator = RSSFeedGenerator(
+                feed_title=base_title,
+                feed_link=feed_link,
+                feed_description=base_description,
+                language=lang_code,
             )
 
-        except Exception as e:
-            logger.error(f"Failed to generate {feed_key} feed: {e}")
-            raise
+            feed_path = output_path / feed_filename
+            feed_url = f"{feed_base_url}/{feed_filename}"
+
+            try:
+                size = _write_feed(feed_path, locale_generator, locale_articles, feed_url)
+                if size is not None:
+                    generated[str(feed_path)] = size
+                    logger.debug(
+                        f"Feed saved: {feed_filename} ({size / 1024:.2f} KB, "
+                        f"{len(locale_articles)} articles)"
+                    )
+                else:
+                    skipped_count += 1
+                    logger.debug(f"Feed skipped (empty): {feed_filename}")
+            except Exception as e:
+                logger.error(f"Failed to generate {feed_filename}: {e}")
+                raise
+
+            # ---------------------------------------------------------- #
+            # 2b. Per-category feeds for this game+locale
+            # ---------------------------------------------------------- #
+            for category_slug in categories:
+                category_display = CATEGORY_SLUG_TO_DISPLAY.get(category_slug, category_slug)
+                category_articles = _filter_by_category(locale_articles, category_display)
+
+                # Build path: feed/{game}/{locale}/{category}.xml
+                # For LoL: feed/lol/{locale}/{category}.xml
+                cat_feed_filename = f"feed/{game_id}/{locale}/{category_slug}.xml"
+
+                cat_title = _build_category_feed_title(game_id, category_display, locale)
+                cat_generator = RSSFeedGenerator(
+                    feed_title=cat_title,
+                    feed_link=feed_link,
+                    feed_description=(f"{category_display} - {base_description}"),
+                    language=lang_code,
+                )
+
+                cat_feed_path = output_path / cat_feed_filename
+                cat_feed_url = f"{feed_base_url}/{cat_feed_filename}"
+
+                try:
+                    size = _write_feed(
+                        cat_feed_path,
+                        cat_generator,
+                        category_articles,
+                        cat_feed_url,
+                    )
+                    if size is not None:
+                        generated[str(cat_feed_path)] = size
+                        logger.debug(
+                            f"Category feed saved: {cat_feed_filename} "
+                            f"({size / 1024:.2f} KB, "
+                            f"{len(category_articles)} articles)"
+                        )
+                    else:
+                        skipped_count += 1
+                except Exception as e:
+                    logger.error(f"Failed to generate {cat_feed_filename}: {e}")
+                    raise
+
+        logger.info(f"Finished {_GAME_DISPLAY_NAMES.get(game_id, game_id)} feeds")
 
     # Close repository
     await repository.close()
+
+    logger.info(
+        f"Feed generation complete: {len(generated)} written, " f"{skipped_count} skipped (empty)"
+    )
 
     return generated
 
@@ -266,10 +488,10 @@ def validate_feeds(feeds: dict[str, int]) -> bool:
     Validate generated RSS feeds.
 
     Args:
-        feeds: Dictionary of feed file paths to sizes
+        feeds: Dictionary of feed file paths to sizes.
 
     Returns:
-        True if all feeds are valid, False otherwise
+        True if all feeds are valid, False otherwise.
     """
     all_valid = True
 
@@ -312,10 +534,10 @@ def parse_arguments() -> argparse.Namespace:
     Parse command line arguments.
 
     Returns:
-        Parsed arguments namespace
+        Parsed arguments namespace.
     """
     parser = argparse.ArgumentParser(
-        description="Generate RSS 2.0 feeds for GitHub Pages deployment",
+        description="Generate RSS 2.0 feeds for GitHub Pages deployment (multi-game)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -334,13 +556,21 @@ Examples:
   Combine options:
     python scripts/generate_rss_feeds.py --output public --limit 200 --base-url https://example.com
 
-Generated feeds:
-  - feed.xml        (all articles, all languages)
-  - feed/{locale}.xml (articles for each locale)
+Generated feed hierarchy:
+  - feed.xml                                (all articles, all games)
+  - feed/{locale}.xml                       (LoL per locale, backwards-compatible)
+  - feed/lol/{locale}/{category}.xml        (LoL per category per locale)
+  - feed/tft/{locale}.xml                   (TFT all categories per locale)
+  - feed/tft/{locale}/{category}.xml        (TFT per category per locale)
+  - feed/wildrift/{locale}.xml              (Wild Rift all categories per locale)
+  - feed/wildrift/{locale}/{category}.xml   (Wild Rift per category per locale)
 
-Supported locales (20):
+Supported locales (25):
   en-us, en-gb, es-es, es-mx, fr-fr, de-de, it-it, pt-br, ru-ru, tr-tr,
-  pl-pl, ja-jp, ko-kr, zh-cn, zh-tw, ar-ae, vi-vn, th-th, id-id, ph-ph
+  pl-pl, ja-jp, ko-kr, zh-cn, zh-tw, ar-ae, vi-vn, th-th, id-id, ph-ph,
+  cs-cz, el-gr, en-au, en-sg, hu-hu
+
+Games: League of Legends (lol), Teamfight Tactics (tft), Wild Rift (wildrift)
         """,
     )
 
@@ -447,13 +677,20 @@ def main() -> None:
         for feed_path, size in feeds.items():
             logger.info(f"  - {feed_path} ({size / 1024:.2f} KB)")
 
-        logger.info("Public URLs:")
+        logger.info("Public URL patterns:")
         logger.info(f"  - {feed_base_url}/feed.xml")
-        logger.info(f"  - {feed_base_url}/feed/{{locale}}.xml")
+        logger.info(f"  - {feed_base_url}/feed/{{locale}}.xml  (LoL)")
+        logger.info(f"  - {feed_base_url}/feed/lol/{{locale}}/{{category}}.xml")
+        logger.info(f"  - {feed_base_url}/feed/tft/{{locale}}.xml")
+        logger.info(f"  - {feed_base_url}/feed/tft/{{locale}}/{{category}}.xml")
+        logger.info(f"  - {feed_base_url}/feed/wildrift/{{locale}}.xml")
+        logger.info(f"  - {feed_base_url}/feed/wildrift/{{locale}}/{{category}}.xml")
         logger.info("")
-        logger.info("  Supported locales: en-us, en-gb, es-es, es-mx, fr-fr, de-de, it-it,")
-        logger.info("                   pt-br, ru-ru, tr-tr, pl-pl, ja-jp, ko-kr, zh-cn,")
-        logger.info("                   zh-tw, ar-ae, vi-vn, th-th, id-id, ph-ph")
+        logger.info("  Supported locales (25): en-us, en-gb, es-es, es-mx, fr-fr, de-de,")
+        logger.info("    it-it, pt-br, ru-ru, tr-tr, pl-pl, ja-jp, ko-kr, zh-cn, zh-tw,")
+        logger.info("    ar-ae, vi-vn, th-th, id-id, ph-ph, cs-cz, el-gr, en-au, en-sg,")
+        logger.info("    hu-hu")
+        logger.info("  Games: League of Legends, Teamfight Tactics, Wild Rift")
 
     except KeyboardInterrupt:
         logger.info("Operation cancelled by user")

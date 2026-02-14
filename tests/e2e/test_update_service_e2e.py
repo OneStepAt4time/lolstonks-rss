@@ -627,8 +627,9 @@ class TestUpdateServicePerformance:
         """Test UpdateServiceV2 performance with concurrent updates."""
         service = UpdateServiceV2(test_db, max_concurrent=10)
 
-        # Mock the LoL client
-        service.lol_client.fetch_news = AsyncMock(return_value=sample_articles)
+        # Mock all game clients (lol, tft, wildrift)
+        for game_id in service.game_clients:
+            service.game_clients[game_id].fetch_news = AsyncMock(return_value=sample_articles)
 
         # Mock scrapers
         with patch("src.services.update_service.get_scraper") as mock_get_scraper:
@@ -641,7 +642,7 @@ class TestUpdateServicePerformance:
             stats = await service.update_locales(["en-us", "it-it"])
             elapsed = (datetime.utcnow() - start).total_seconds()
 
-            # Verify reasonable performance (allow 30s due to rate limiting delays)
-            # With rate limiting of 2-5 seconds per domain, this test can take longer
-            assert elapsed < 30.0
+            # With 3 games x categories + rate limiting (2-5s per domain),
+            # multi-game expansion generates ~60+ tasks across 3 domains
+            assert elapsed < 120.0
             assert stats["total_tasks"] > 0

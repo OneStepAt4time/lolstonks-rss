@@ -109,8 +109,9 @@ class TestGetBuildId:
     @pytest.mark.asyncio
     async def test_get_build_id_cached(self, api_client: LoLNewsAPIClient) -> None:
         """Test that buildId is retrieved from cache on second call."""
-        # Pre-populate cache
-        api_client.cache.set("buildid_en-us", "cached-build-id")
+        # Pre-populate cache with domain-aware key
+        cache_key = f"buildid_{api_client.base_url}_en-us"
+        api_client.cache.set(cache_key, "cached-build-id")
 
         with patch("httpx.AsyncClient") as mock_client_class:
             build_id = await api_client.get_build_id("en-us")
@@ -175,9 +176,10 @@ class TestGetBuildId:
             assert build_id_en == "test-build-id-123"
             assert build_id_it == "test-build-id-123"
 
-            # But they should be cached separately
-            assert api_client.cache.get("buildid_en-us") == "test-build-id-123"
-            assert api_client.cache.get("buildid_it-it") == "test-build-id-123"
+            # But they should be cached separately (domain-aware keys)
+            base = api_client.base_url
+            assert api_client.cache.get(f"buildid_{base}_en-us") == "test-build-id-123"
+            assert api_client.cache.get(f"buildid_{base}_it-it") == "test-build-id-123"
 
 
 class TestFetchNews:
@@ -495,9 +497,10 @@ class TestCacheIntegration:
     @pytest.mark.asyncio
     async def test_cache_isolation_between_locales(self, api_client: LoLNewsAPIClient) -> None:
         """Test that different locales maintain separate cache entries."""
-        # Pre-populate cache with different values
-        api_client.cache.set("buildid_en-us", "en-build-id")
-        api_client.cache.set("buildid_it-it", "it-build-id")
+        # Pre-populate cache with domain-aware keys
+        base = api_client.base_url
+        api_client.cache.set(f"buildid_{base}_en-us", "en-build-id")
+        api_client.cache.set(f"buildid_{base}_it-it", "it-build-id")
 
         build_id_en = await api_client.get_build_id("en-us")
         build_id_it = await api_client.get_build_id("it-it")
@@ -508,11 +511,13 @@ class TestCacheIntegration:
     @pytest.mark.asyncio
     async def test_cache_invalidation(self, api_client: LoLNewsAPIClient) -> None:
         """Test cache invalidation on 404."""
-        # Pre-populate cache
-        api_client.cache.set("buildid_en-us", "old-build-id")
+        # Pre-populate cache with domain-aware key
+        base = api_client.base_url
+        cache_key = f"buildid_{base}_en-us"
+        api_client.cache.set(cache_key, "old-build-id")
 
         # Verify it's in cache
-        assert api_client.cache.get("buildid_en-us") == "old-build-id"
+        assert api_client.cache.get(cache_key) == "old-build-id"
 
         # Simulate 404 response
         async def mock_get_build_id(locale: str) -> str:
@@ -541,3 +546,198 @@ class TestCacheIntegration:
 
                 # Cache should have been invalidated
                 # Note: get_build_id is mocked, so actual cache won't be populated
+
+
+class TestCategoryFetching:
+    """Tests for category-specific news fetching."""
+
+    @pytest.mark.asyncio
+    async def test_fetch_news_with_category(self, api_client: LoLNewsAPIClient) -> None:
+        """Test that category parameter produces correct URL."""
+
+        async def mock_get_build_id(locale: str) -> str:
+            return "test-build-id"
+
+        with patch.object(api_client, "get_build_id", side_effect=mock_get_build_id):
+            mock_response = AsyncMock()
+            mock_response.status_code = 200
+            mock_response.json = Mock(return_value=MOCK_API_RESPONSE)
+            mock_response.raise_for_status = Mock()
+
+            with patch("httpx.AsyncClient") as mock_client_class:
+                mock_client = AsyncMock()
+                mock_client.__aenter__.return_value = mock_client
+                mock_client.__aexit__.return_value = None
+                mock_client.get = AsyncMock(return_value=mock_response)
+                mock_client_class.return_value = mock_client
+
+                articles = await api_client.fetch_news("en-us", category="game-updates")
+
+                assert len(articles) == 2
+                # Verify the URL included the category
+                call_args = mock_client.get.call_args
+                url = call_args[0][0] if call_args[0] else call_args[1].get("url", "")
+                assert "/news/game-updates.json" in url
+
+    @pytest.mark.asyncio
+    async def test_fetch_news_without_category(self, api_client: LoLNewsAPIClient) -> None:
+        """Test that no category uses the main news endpoint."""
+
+        async def mock_get_build_id(locale: str) -> str:
+            return "test-build-id"
+
+        with patch.object(api_client, "get_build_id", side_effect=mock_get_build_id):
+            mock_response = AsyncMock()
+            mock_response.status_code = 200
+            mock_response.json = Mock(return_value=MOCK_API_RESPONSE)
+            mock_response.raise_for_status = Mock()
+
+            with patch("httpx.AsyncClient") as mock_client_class:
+                mock_client = AsyncMock()
+                mock_client.__aenter__.return_value = mock_client
+                mock_client.__aexit__.return_value = None
+                mock_client.get = AsyncMock(return_value=mock_response)
+                mock_client_class.return_value = mock_client
+
+                articles = await api_client.fetch_news("en-us")
+
+                assert len(articles) == 2
+                # Verify the URL does NOT include a category
+                call_args = mock_client.get.call_args
+                url = call_args[0][0] if call_args[0] else call_args[1].get("url", "")
+                assert url.endswith("/news.json")
+
+    @pytest.mark.asyncio
+    async def test_fetch_news_category_404_retry(self, api_client: LoLNewsAPIClient) -> None:
+        """Test 404 retry includes category in retried URL."""
+        call_count = 0
+
+        async def mock_get(*args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            mock_response = AsyncMock()
+
+            if call_count == 1:
+                mock_response.status_code = 404
+            else:
+                mock_response.status_code = 200
+                mock_response.json = Mock(return_value=MOCK_API_RESPONSE)
+
+            mock_response.raise_for_status = Mock()
+            return mock_response
+
+        async def mock_get_build_id(locale: str) -> str:
+            return "test-build-id"
+
+        with patch.object(api_client, "get_build_id", side_effect=mock_get_build_id):
+            with patch("httpx.AsyncClient") as mock_client_class:
+                mock_client = AsyncMock()
+                mock_client.__aenter__.return_value = mock_client
+                mock_client.__aexit__.return_value = None
+                mock_client.get = mock_get
+                mock_client_class.return_value = mock_client
+
+                articles = await api_client.fetch_news("en-us", category="dev")
+
+                assert len(articles) == 2
+                assert call_count == 2  # Retry after 404
+
+
+class TestMultiDomain:
+    """Tests for multi-domain (TFT, Wild Rift) support."""
+
+    def test_tft_client_uses_tft_base_url(self) -> None:
+        """Test TFT client is created with correct base URL."""
+        cache = TTLCache(default_ttl_seconds=3600)
+        tft_client = LoLNewsAPIClient(
+            base_url="https://teamfighttactics.leagueoflegends.com",
+            cache=cache,
+            source_id="tft",
+        )
+        assert tft_client.base_url == "https://teamfighttactics.leagueoflegends.com"
+        assert tft_client.source_id == "tft"
+
+    def test_wildrift_client_uses_wildrift_base_url(self) -> None:
+        """Test Wild Rift client is created with correct base URL."""
+        cache = TTLCache(default_ttl_seconds=3600)
+        wr_client = LoLNewsAPIClient(
+            base_url="https://wildrift.leagueoflegends.com",
+            cache=cache,
+            source_id="wildrift",
+        )
+        assert wr_client.base_url == "https://wildrift.leagueoflegends.com"
+        assert wr_client.source_id == "wildrift"
+
+    def test_default_source_id_is_lol(self) -> None:
+        """Test default source_id is 'lol'."""
+        cache = TTLCache(default_ttl_seconds=3600)
+        client = LoLNewsAPIClient(base_url="https://www.leagueoflegends.com", cache=cache)
+        assert client.source_id == "lol"
+
+    @pytest.mark.asyncio
+    async def test_build_id_cache_per_domain(self) -> None:
+        """Test that cache keys include domain to prevent collisions."""
+        shared_cache = TTLCache(default_ttl_seconds=3600)
+
+        lol_client = LoLNewsAPIClient(
+            base_url="https://www.leagueoflegends.com",
+            cache=shared_cache,
+            source_id="lol",
+        )
+        tft_client = LoLNewsAPIClient(
+            base_url="https://teamfighttactics.leagueoflegends.com",
+            cache=shared_cache,
+            source_id="tft",
+        )
+
+        # Pre-populate different build IDs per domain
+        shared_cache.set(f"buildid_{lol_client.base_url}_en-us", "lol-build-123")
+        shared_cache.set(f"buildid_{tft_client.base_url}_en-us", "tft-build-456")
+
+        # Each client should get its own build ID
+        lol_build = await lol_client.get_build_id("en-us")
+        tft_build = await tft_client.get_build_id("en-us")
+
+        assert lol_build == "lol-build-123"
+        assert tft_build == "tft-build-456"
+        assert lol_build != tft_build
+
+    def test_tft_article_source_attribution(self) -> None:
+        """Test that TFT client creates articles with tft source."""
+        cache = TTLCache(default_ttl_seconds=3600)
+        tft_client = LoLNewsAPIClient(
+            base_url="https://teamfighttactics.leagueoflegends.com",
+            cache=cache,
+            source_id="tft",
+        )
+
+        item = {
+            "title": "TFT Patch Notes",
+            "publishedAt": "2025-12-28T10:00:00.000Z",
+            "action": {"url": "https://example.com/tft-article"},
+        }
+
+        article = tft_client._transform_to_article(item, "en-us")
+
+        assert article.source == ArticleSource.create("tft", "en-us")
+        assert article.source.source_id == "tft"
+
+    def test_wildrift_article_source_attribution(self) -> None:
+        """Test that Wild Rift client creates articles with wildrift source."""
+        cache = TTLCache(default_ttl_seconds=3600)
+        wr_client = LoLNewsAPIClient(
+            base_url="https://wildrift.leagueoflegends.com",
+            cache=cache,
+            source_id="wildrift",
+        )
+
+        item = {
+            "title": "Wild Rift Update",
+            "publishedAt": "2025-12-28T10:00:00.000Z",
+            "action": {"url": "https://example.com/wr-article"},
+        }
+
+        article = wr_client._transform_to_article(item, "ko-kr")
+
+        assert article.source == ArticleSource.create("wildrift", "ko-kr")
+        assert article.source.source_id == "wildrift"

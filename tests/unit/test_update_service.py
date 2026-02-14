@@ -10,8 +10,14 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from src.models import Article, ArticleSource
-from src.services.update_service import UpdateService
+from src.config import GAME_CATEGORIES, GAME_DOMAINS
+from src.models import Article, ArticleSource, SourceCategory
+from src.services.update_service import (
+    UpdatePriority,
+    UpdateService,
+    UpdateServiceV2,
+    UpdateTask,
+)
 
 
 @pytest.fixture
@@ -227,3 +233,255 @@ async def test_update_source_logging(
     assert stats["fetched"] == 0
     assert stats["new"] == 0
     assert stats["duplicates"] == 0
+
+
+# =============================================================================
+# UpdateServiceV2 Tests (multi-game, per-category)
+# =============================================================================
+
+
+@pytest.fixture
+def mock_repository_v2() -> AsyncMock:
+    """Create a mock repository for UpdateServiceV2 testing."""
+    repo = AsyncMock()
+    repo.save = AsyncMock(return_value=True)
+    repo.initialize = AsyncMock()
+    repo.close = AsyncMock()
+    return repo
+
+
+@pytest.fixture
+def update_service_v2(mock_repository_v2: AsyncMock) -> UpdateServiceV2:
+    """Create an UpdateServiceV2 instance with mock repository."""
+    return UpdateServiceV2(mock_repository_v2)
+
+
+class TestUpdateServiceV2Init:
+    """Tests for UpdateServiceV2 initialization."""
+
+    def test_game_clients_created(self, update_service_v2: UpdateServiceV2) -> None:
+        """Test that game clients are created for all game domains."""
+        for game_id in GAME_DOMAINS:
+            assert game_id in update_service_v2.game_clients
+            assert update_service_v2.game_clients[game_id].source_id == game_id
+
+    def test_lol_client_alias(self, update_service_v2: UpdateServiceV2) -> None:
+        """Test lol_client is an alias to game_clients['lol']."""
+        assert update_service_v2.lol_client is update_service_v2.game_clients["lol"]
+
+    def test_tft_client_base_url(self, update_service_v2: UpdateServiceV2) -> None:
+        """Test TFT client has correct base URL."""
+        tft_client = update_service_v2.game_clients["tft"]
+        assert tft_client.base_url == GAME_DOMAINS["tft"]
+
+    def test_wildrift_client_base_url(self, update_service_v2: UpdateServiceV2) -> None:
+        """Test Wild Rift client has correct base URL."""
+        wr_client = update_service_v2.game_clients["wildrift"]
+        assert wr_client.base_url == GAME_DOMAINS["wildrift"]
+
+    def test_rate_limits_include_game_domains(self, update_service_v2: UpdateServiceV2) -> None:
+        """Test rate limits exist for all game domains."""
+        assert "teamfighttactics.leagueoflegends.com" in update_service_v2.DEFAULT_RATE_LIMITS
+        assert "wildrift.leagueoflegends.com" in update_service_v2.DEFAULT_RATE_LIMITS
+
+
+class TestCreateTasks:
+    """Tests for task creation with category support."""
+
+    @pytest.mark.asyncio
+    async def test_create_tasks_includes_categories_for_games(
+        self, update_service_v2: UpdateServiceV2
+    ) -> None:
+        """Test that game sources get tasks for main + each category."""
+        tasks = await update_service_v2._create_tasks(locales=["en-us"], source_ids=["lol"])
+
+        # Should have: 1 main + len(LOL_NEWS_CATEGORIES) category tasks
+        expected_count = 1 + len(GAME_CATEGORIES["lol"])
+        assert len(tasks) == expected_count
+
+        # First task should be main (news_category=None)
+        main_tasks = [t for t in tasks if t.news_category is None]
+        assert len(main_tasks) == 1
+
+        # Category tasks should match config
+        cat_tasks = [t for t in tasks if t.news_category is not None]
+        assert len(cat_tasks) == len(GAME_CATEGORIES["lol"])
+        cat_slugs = {t.news_category for t in cat_tasks}
+        assert cat_slugs == set(GAME_CATEGORIES["lol"])
+
+    @pytest.mark.asyncio
+    async def test_create_tasks_includes_all_games(
+        self, update_service_v2: UpdateServiceV2
+    ) -> None:
+        """Test that tasks are created for lol, tft, and wildrift."""
+        tasks = await update_service_v2._create_tasks(
+            locales=["en-us"], source_ids=["lol", "tft", "wildrift"]
+        )
+
+        source_ids = {t.source_id for t in tasks}
+        assert "lol" in source_ids
+        assert "tft" in source_ids
+        assert "wildrift" in source_ids
+
+    @pytest.mark.asyncio
+    async def test_create_tasks_tft_categories(self, update_service_v2: UpdateServiceV2) -> None:
+        """Test TFT gets its own category set."""
+        tasks = await update_service_v2._create_tasks(locales=["en-us"], source_ids=["tft"])
+        expected_count = 1 + len(GAME_CATEGORIES["tft"])
+        assert len(tasks) == expected_count
+
+    @pytest.mark.asyncio
+    async def test_create_tasks_multiple_locales(self, update_service_v2: UpdateServiceV2) -> None:
+        """Test that tasks are created for each locale."""
+        locales = ["en-us", "it-it"]
+        tasks = await update_service_v2._create_tasks(locales=locales, source_ids=["lol"])
+
+        # Each locale gets main + categories
+        expected_per_locale = 1 + len(GAME_CATEGORIES["lol"])
+        assert len(tasks) == expected_per_locale * len(locales)
+
+    @pytest.mark.asyncio
+    async def test_create_tasks_non_game_source_no_categories(
+        self, update_service_v2: UpdateServiceV2
+    ) -> None:
+        """Test non-game sources get one task per locale (no categories)."""
+        tasks = await update_service_v2._create_tasks(locales=["en-us"], source_ids=["dexerto"])
+
+        # Should be exactly 1 task (one locale, no categories)
+        assert len(tasks) == 1
+        assert tasks[0].news_category is None
+
+
+class TestUpdateTaskHash:
+    """Tests for UpdateTask hash and equality."""
+
+    def test_task_hash_includes_news_category(self) -> None:
+        """Test that tasks with different categories have different hashes."""
+        task_main = UpdateTask(
+            priority=UpdatePriority.CRITICAL,
+            source_id="lol",
+            locale="en-us",
+            category=SourceCategory.OFFICIAL_RIOT,
+            news_category=None,
+        )
+        task_cat = UpdateTask(
+            priority=UpdatePriority.CRITICAL,
+            source_id="lol",
+            locale="en-us",
+            category=SourceCategory.OFFICIAL_RIOT,
+            news_category="game-updates",
+        )
+        assert hash(task_main) != hash(task_cat)
+
+    def test_same_task_same_hash(self) -> None:
+        """Test that identical tasks have the same hash."""
+        task1 = UpdateTask(
+            priority=UpdatePriority.MEDIUM,
+            source_id="tft",
+            locale="ko-kr",
+            category=SourceCategory.TFT,
+            news_category="dev",
+        )
+        task2 = UpdateTask(
+            priority=UpdatePriority.MEDIUM,
+            source_id="tft",
+            locale="ko-kr",
+            category=SourceCategory.TFT,
+            news_category="dev",
+        )
+        assert hash(task1) == hash(task2)
+
+
+class TestUpdateSourceRouting:
+    """Tests for _update_source routing to correct client."""
+
+    @pytest.mark.asyncio
+    async def test_routes_lol_to_lol_client(
+        self, update_service_v2: UpdateServiceV2, mock_repository_v2: AsyncMock
+    ) -> None:
+        """Test that lol tasks route to lol game client."""
+        mock_client = AsyncMock()
+        mock_client.fetch_news = AsyncMock(return_value=[])
+        update_service_v2.game_clients["lol"] = mock_client
+
+        task = UpdateTask(
+            priority=UpdatePriority.CRITICAL,
+            source_id="lol",
+            locale="en-us",
+            category=SourceCategory.OFFICIAL_RIOT,
+        )
+
+        await update_service_v2._update_source(task)
+        mock_client.fetch_news.assert_called_once_with("en-us", category=None)
+
+    @pytest.mark.asyncio
+    async def test_routes_tft_to_tft_client(
+        self, update_service_v2: UpdateServiceV2, mock_repository_v2: AsyncMock
+    ) -> None:
+        """Test that tft tasks route to tft game client."""
+        mock_client = AsyncMock()
+        mock_client.fetch_news = AsyncMock(return_value=[])
+        update_service_v2.game_clients["tft"] = mock_client
+
+        task = UpdateTask(
+            priority=UpdatePriority.MEDIUM,
+            source_id="tft",
+            locale="en-us",
+            category=SourceCategory.TFT,
+            news_category="game-updates",
+        )
+
+        await update_service_v2._update_source(task)
+        mock_client.fetch_news.assert_called_once_with("en-us", category="game-updates")
+
+    @pytest.mark.asyncio
+    async def test_routes_wildrift_to_wildrift_client(
+        self, update_service_v2: UpdateServiceV2, mock_repository_v2: AsyncMock
+    ) -> None:
+        """Test that wildrift tasks route to wildrift game client."""
+        mock_client = AsyncMock()
+        mock_client.fetch_news = AsyncMock(return_value=[])
+        update_service_v2.game_clients["wildrift"] = mock_client
+
+        task = UpdateTask(
+            priority=UpdatePriority.CRITICAL,
+            source_id="wildrift",
+            locale="ko-kr",
+            category=SourceCategory.OFFICIAL_RIOT,
+            news_category="dev",
+        )
+
+        await update_service_v2._update_source(task)
+        mock_client.fetch_news.assert_called_once_with("ko-kr", category="dev")
+
+    @pytest.mark.asyncio
+    async def test_saves_fetched_articles(
+        self, update_service_v2: UpdateServiceV2, mock_repository_v2: AsyncMock
+    ) -> None:
+        """Test that fetched articles are saved to the repository."""
+        mock_articles = [
+            Article(
+                title="TFT Patch",
+                url="http://test.com/tft",
+                pub_date=datetime.utcnow(),
+                guid="tft-1",
+                source=ArticleSource.create("tft", "en-us"),
+                categories=["Game Updates"],
+            )
+        ]
+
+        mock_client = AsyncMock()
+        mock_client.fetch_news = AsyncMock(return_value=mock_articles)
+        update_service_v2.game_clients["tft"] = mock_client
+
+        task = UpdateTask(
+            priority=UpdatePriority.MEDIUM,
+            source_id="tft",
+            locale="en-us",
+            category=SourceCategory.TFT,
+        )
+
+        new_count = await update_service_v2._update_source(task)
+
+        assert new_count == 1
+        mock_repository_v2.save.assert_called_once()
