@@ -32,17 +32,77 @@ RIOT_LOCALES = [
     "th-th",  # Thai - Thailand
     "id-id",  # Indonesian - Indonesia
     "ph-ph",  # Filipino - Philippines
+    "cs-cz",  # Czech - Czech Republic
+    "el-gr",  # Greek - Greece
+    "en-au",  # English - Australia
+    "en-sg",  # English - Singapore
+    "hu-hu",  # Hungarian - Hungary
 ]
+
+# Game domains - all use identical Next.js API pattern
+GAME_DOMAINS: dict[str, str] = {
+    "lol": "https://www.leagueoflegends.com",
+    "tft": "https://teamfighttactics.leagueoflegends.com",
+    "wildrift": "https://wildrift.leagueoflegends.com",
+}
+
+# News categories per game (verified working endpoints)
+LOL_NEWS_CATEGORIES = [
+    "game-updates",
+    "dev",
+    "esports",
+    "community",
+    "media",
+    "lore",
+    "riot-games",
+    "announcements",
+    "merch",
+]
+
+TFT_NEWS_CATEGORIES = [
+    "game-updates",
+    "dev",
+    "esports",
+    "community",
+    "media",
+]
+
+WILDRIFT_NEWS_CATEGORIES = [
+    "game-updates",
+    "dev",
+    "esports",
+    "community",
+]
+
+GAME_CATEGORIES: dict[str, list[str]] = {
+    "lol": LOL_NEWS_CATEGORIES,
+    "tft": TFT_NEWS_CATEGORIES,
+    "wildrift": WILDRIFT_NEWS_CATEGORIES,
+}
+
+# Mapping from category URL slug to display name (as returned by Riot API)
+CATEGORY_SLUG_TO_DISPLAY: dict[str, str] = {
+    "game-updates": "Game Updates",
+    "dev": "Dev",
+    "esports": "Esports",
+    "community": "Community",
+    "media": "Media",
+    "lore": "Lore",
+    "riot-games": "Riot Games",
+    "announcements": "Announcements",
+    "merch": "Merch",
+}
 
 # Locale groups for batch operations and regional feeds
 LOCALE_GROUPS = {
-    "english": ["en-us", "en-gb"],
+    "english": ["en-us", "en-gb", "en-au", "en-sg"],
     "spanish": ["es-es", "es-mx"],
     "chinese": ["zh-cn", "zh-tw"],
-    "eu": ["en-gb", "fr-fr", "de-de", "it-it", "es-es", "pl-pl"],
+    "eu": ["en-gb", "fr-fr", "de-de", "it-it", "es-es", "pl-pl", "cs-cz", "el-gr", "hu-hu"],
     "latam": ["es-mx", "pt-br"],
     "asia": ["ja-jp", "ko-kr", "zh-cn", "zh-tw", "vi-vn", "th-th", "id-id", "ph-ph"],
     "sea": ["vi-vn", "th-th", "id-id", "ph-ph"],
+    "oceania": ["en-au", "en-sg"],
     "all": RIOT_LOCALES,
 }
 
@@ -68,6 +128,11 @@ FEED_TITLES = {
     "th-th": "ข่าว League of Legends",
     "id-id": "Berita League of Legends",
     "ph-ph": "Balita ng League of Legends",
+    "cs-cz": "League of Legends Novinky",
+    "el-gr": "\u039d\u03ad\u03b1 League of Legends",
+    "en-au": "League of Legends News",
+    "en-sg": "League of Legends News",
+    "hu-hu": "League of Legends H\u00edrek",
 }
 
 # Localized feed descriptions
@@ -92,6 +157,60 @@ FEED_DESCRIPTIONS = {
     "th-th": "ข่าวและอัปเดตล่าสุดของ League of Legends",
     "id-id": "Berita dan pembaruan League of Legends terbaru",
     "ph-ph": "Mga pinakabagong balita at update ng League of Legends",
+    "cs-cz": "Nejnov\u011bj\u0161\u00ed zpr\u00e1vy a aktualizace League of Legends",
+    "el-gr": "\u03a4\u03b5\u03bb\u03b5\u03c5\u03c4\u03b1\u03af\u03b1 \u03bd\u03ad\u03b1 \u03ba\u03b1\u03b9 \u03b5\u03bd\u03b7\u03bc\u03b5\u03c1\u03ce\u03c3\u03b5\u03b9\u03c2 League of Legends",
+    "en-au": "Latest League of Legends news and updates",
+    "en-sg": "Latest League of Legends news and updates",
+    "hu-hu": "League of Legends legfrissebb h\u00edrei \u00e9s friss\u00edt\u00e9sei",
+}
+
+# Feed titles for TFT and Wild Rift
+TFT_FEED_TITLES: dict[str, str] = {
+    "en-us": "Teamfight Tactics News",
+    "en-gb": "Teamfight Tactics News",
+    "it-it": "Notizie Teamfight Tactics",
+    "es-es": "Noticias de Teamfight Tactics",
+    "fr-fr": "Actualit\u00e9s Teamfight Tactics",
+    "de-de": "Teamfight Tactics Neuigkeiten",
+    "pt-br": "Not\u00edcias de Teamfight Tactics",
+    "ja-jp": "\u30c1\u30fc\u30e0\u30d5\u30a1\u30a4\u30c8\u30bf\u30af\u30c6\u30a3\u30af\u30b9 \u30cb\u30e5\u30fc\u30b9",
+    "ko-kr": "\ud300\ud30c\uc774\ud2b8 \ud0dd\ud2f1\uc2a4 \ub274\uc2a4",
+}
+
+TFT_FEED_DESCRIPTIONS: dict[str, str] = {
+    "en-us": "Latest Teamfight Tactics news and updates",
+    "en-gb": "Latest Teamfight Tactics news and updates",
+    "it-it": "Ultime notizie e aggiornamenti di Teamfight Tactics",
+    "es-es": "Las \u00faltimas noticias de Teamfight Tactics",
+    "fr-fr": "Derni\u00e8res actualit\u00e9s Teamfight Tactics",
+    "de-de": "Die neuesten Teamfight Tactics Neuigkeiten",
+    "pt-br": "\u00daltimas not\u00edcias de Teamfight Tactics",
+    "ja-jp": "TFT\u306e\u6700\u65b0\u30cb\u30e5\u30fc\u30b9",
+    "ko-kr": "TFT \ucd5c\uc2e0 \ub274\uc2a4",
+}
+
+WILDRIFT_FEED_TITLES: dict[str, str] = {
+    "en-us": "Wild Rift News",
+    "en-gb": "Wild Rift News",
+    "it-it": "Notizie Wild Rift",
+    "es-es": "Noticias de Wild Rift",
+    "fr-fr": "Actualit\u00e9s Wild Rift",
+    "de-de": "Wild Rift Neuigkeiten",
+    "pt-br": "Not\u00edcias de Wild Rift",
+    "ja-jp": "\u30ef\u30a4\u30eb\u30c9\u30ea\u30d5\u30c8 \u30cb\u30e5\u30fc\u30b9",
+    "ko-kr": "\uc640\uc77c\ub4dc \ub9ac\ud504\ud2b8 \ub274\uc2a4",
+}
+
+WILDRIFT_FEED_DESCRIPTIONS: dict[str, str] = {
+    "en-us": "Latest Wild Rift news and updates",
+    "en-gb": "Latest Wild Rift news and updates",
+    "it-it": "Ultime notizie e aggiornamenti di Wild Rift",
+    "es-es": "Las \u00faltimas noticias de Wild Rift",
+    "fr-fr": "Derni\u00e8res actualit\u00e9s Wild Rift",
+    "de-de": "Die neuesten Wild Rift Neuigkeiten",
+    "pt-br": "\u00daltimas not\u00edcias de Wild Rift",
+    "ja-jp": "\u30ef\u30a4\u30eb\u30c9\u30ea\u30d5\u30c8\u306e\u6700\u65b0\u30cb\u30e5\u30fc\u30b9",
+    "ko-kr": "\uc640\uc77c\ub4dc \ub9ac\ud504\ud2b8 \ucd5c\uc2e0 \ub274\uc2a4",
 }
 
 

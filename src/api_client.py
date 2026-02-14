@@ -28,15 +28,23 @@ class LoLNewsAPIClient:
     including build ID discovery and article parsing.
     """
 
-    def __init__(self, base_url: str | None = None, cache: TTLCache | None = None) -> None:
+    def __init__(
+        self,
+        base_url: str | None = None,
+        cache: TTLCache | None = None,
+        source_id: str = "lol",
+    ) -> None:
         """
         Initialize the API client.
 
         Args:
             base_url: Base URL for LoL website (defaults to settings)
             cache: Optional TTLCache instance for caching build IDs
+            source_id: Source identifier for ArticleSource attribution
+                       (e.g., "lol", "tft", "wildrift")
         """
         self.base_url = base_url or settings.lol_news_base_url
+        self.source_id = source_id
         self.cache = cache or TTLCache(default_ttl_seconds=settings.build_id_cache_seconds)
 
     def _format_accept_language(self, locale: str) -> str:
@@ -75,7 +83,7 @@ class LoLNewsAPIClient:
             ValueError: If buildId not found in HTML
             httpx.HTTPError: If HTTP request fails
         """
-        cache_key = f"buildid_{locale}"
+        cache_key = f"buildid_{self.base_url}_{locale}"
 
         # Check cache first
         cached = self.cache.get(cache_key)
@@ -108,14 +116,18 @@ class LoLNewsAPIClient:
 
         return build_id
 
-    async def fetch_news(self, locale: str = "en-us") -> list[Article]:
+    async def fetch_news(self, locale: str = "en-us", category: str | None = None) -> list[Article]:
         """
-        Fetch news articles for a specific locale.
+        Fetch news articles for a specific locale and optional category.
 
-        API URL pattern: /_next/data/{BUILD_ID}/{locale}/news.json
+        API URL patterns:
+            Main:     /_next/data/{BUILD_ID}/{locale}/news.json
+            Category: /_next/data/{BUILD_ID}/{locale}/news/{category}.json
 
         Args:
             locale: Locale code (e.g., "en-us", "it-it")
+            category: News category slug (e.g., "game-updates", "dev").
+                      None fetches the main news page.
 
         Returns:
             List of Article instances
@@ -127,8 +139,11 @@ class LoLNewsAPIClient:
             # Get buildID (from cache or fetch new)
             build_id = await self.get_build_id(locale)
 
-            # Construct API URL
-            api_url = f"{self.base_url}/_next/data/{build_id}/{locale}/news.json"
+            # Construct API URL (with optional category sub-page)
+            if category:
+                api_url = f"{self.base_url}/_next/data/{build_id}/{locale}/news/{category}.json"
+            else:
+                api_url = f"{self.base_url}/_next/data/{build_id}/{locale}/news.json"
 
             # Fetch JSON data with locale-specific headers
             async with httpx.AsyncClient(timeout=settings.http_timeout_seconds) as client:
@@ -143,12 +158,18 @@ class LoLNewsAPIClient:
                 # If 404, buildID might be stale - invalidate cache and retry once
                 if response.status_code == 404:
                     logger.warning(f"API returned 404, invalidating buildID cache for {locale}")
-                    cache_key = f"buildid_{locale}"
+                    cache_key = f"buildid_{self.base_url}_{locale}"
                     self.cache.delete(cache_key)  # Delete from cache
 
                     # Retry with fresh buildID
                     build_id = await self.get_build_id(locale)
-                    api_url = f"{self.base_url}/_next/data/{build_id}/{locale}/news.json"
+                    if category:
+                        api_url = (
+                            f"{self.base_url}/_next/data/{build_id}"
+                            f"/{locale}/news/{category}.json"
+                        )
+                    else:
+                        api_url = f"{self.base_url}/_next/data/{build_id}/{locale}/news.json"
                     logger.info(f"Retrying with fresh buildId: {api_url}")
                     response = await client.get(api_url, headers=headers, follow_redirects=True)
 
@@ -238,8 +259,8 @@ class LoLNewsAPIClient:
 
         pub_date = datetime.fromisoformat(pub_date_str.replace("Z", "+00:00"))
 
-        # Map locale to ArticleSource
-        source = ArticleSource.create("lol", locale)
+        # Map locale to ArticleSource using client's source_id
+        source = ArticleSource.create(self.source_id, locale)
 
         # Extract description
         description_obj = item.get("description", {})

@@ -3,7 +3,9 @@
  *
  * Generates correct URLs matching GitHub Pages deployment:
  * - Main feed: /feed.xml
- * - Per-locale feeds: /feed/{locale}.xml (20 locales)
+ * - Per-locale feeds: /feed/{locale}.xml (25 locales)
+ * - Per-game feeds: /feed/{game}/{locale}.xml
+ * - Per-category feeds: /feed/{game}/{locale}/{category}.xml
  */
 
 const BASE_URL = 'https://onestepat4time.github.io/lolstonks-rss';
@@ -12,7 +14,8 @@ export const LOCALES = [
   'en-us', 'it-it', 'en-gb', 'es-es', 'es-mx',
   'fr-fr', 'de-de', 'pt-br', 'ru-ru', 'tr-tr',
   'pl-pl', 'ja-jp', 'ko-kr', 'zh-cn', 'zh-tw',
-  'ar-ae', 'vi-vn', 'th-th', 'id-id', 'ph-ph'
+  'ar-ae', 'vi-vn', 'th-th', 'id-id', 'ph-ph',
+  'cs-cz', 'el-gr', 'en-au', 'en-sg', 'hu-hu'
 ] as const;
 
 export const LOCALE_NAMES: Record<string, { name: string; flag: string; searchTerms?: string }> = {
@@ -35,26 +38,48 @@ export const LOCALE_NAMES: Record<string, { name: string; flag: string; searchTe
   'vi-vn': { name: 'Tiếng Việt', flag: '🇻🇳', searchTerms: 'vietnamese vietnam' },
   'th-th': { name: 'ภาษาไทย', flag: '🇹🇭', searchTerms: 'thai thailand' },
   'id-id': { name: 'Bahasa Indonesia', flag: '🇮🇩', searchTerms: 'indonesian indonesia' },
-  'ph-ph': { name: 'Filipino', flag: '🇵🇭', searchTerms: 'philippines tagalog' }
+  'ph-ph': { name: 'Filipino', flag: '🇵🇭', searchTerms: 'philippines tagalog' },
+  'cs-cz': { name: 'Čeština', flag: '🇨🇿', searchTerms: 'czech czechia' },
+  'el-gr': { name: 'Ελληνικά', flag: '🇬🇷', searchTerms: 'greek greece' },
+  'en-au': { name: 'English (AU)', flag: '🇦🇺', searchTerms: 'australian australia' },
+  'en-sg': { name: 'English (SG)', flag: '🇸🇬', searchTerms: 'singapore' },
+  'hu-hu': { name: 'Magyar', flag: '🇭🇺', searchTerms: 'hungarian hungary' }
 };
 
 /** Region groupings for the catalog UI */
-export type Region = 'all' | 'americas' | 'europe' | 'asia' | 'mena';
+export type Region = 'all' | 'americas' | 'europe' | 'asia' | 'mena' | 'oceania';
 
 export const REGION_LOCALES: Record<Exclude<Region, 'all'>, string[]> = {
   americas: ['en-us', 'es-mx', 'pt-br'],
-  europe: ['en-gb', 'es-es', 'fr-fr', 'de-de', 'it-it', 'ru-ru', 'tr-tr', 'pl-pl'],
-  asia: ['ja-jp', 'ko-kr', 'zh-cn', 'zh-tw', 'vi-vn', 'th-th', 'id-id', 'ph-ph'],
+  europe: ['en-gb', 'es-es', 'fr-fr', 'de-de', 'it-it', 'ru-ru', 'tr-tr', 'pl-pl', 'cs-cz', 'el-gr', 'hu-hu'],
+  asia: ['ja-jp', 'ko-kr', 'zh-cn', 'zh-tw', 'vi-vn', 'th-th', 'id-id', 'ph-ph', 'en-sg'],
   mena: ['ar-ae'],
+  oceania: ['en-au', 'en-sg'],
 };
 
-export type FeedType = 'main' | 'locale';
+export type GameType = 'lol' | 'tft' | 'wildrift';
+
+export const GAMES: Record<GameType, { name: string; icon: string }> = {
+  lol: { name: 'League of Legends', icon: '⚔️' },
+  tft: { name: 'Teamfight Tactics', icon: '🎲' },
+  wildrift: { name: 'Wild Rift', icon: '📱' },
+};
+
+export const GAME_CATEGORIES: Record<GameType, string[]> = {
+  lol: ['game-updates', 'dev', 'esports', 'community', 'media', 'lore', 'riot-games', 'announcements', 'merch'],
+  tft: ['game-updates', 'dev', 'esports', 'community', 'media'],
+  wildrift: ['game-updates', 'dev', 'esports', 'community'],
+};
+
+export type FeedType = 'main' | 'locale' | 'game' | 'category';
 
 export interface FeedItem {
   id: string;
   type: FeedType;
   url: string;
   locale?: string;
+  game?: GameType;
+  category?: string;
   displayName: string;
   icon: string;
 }
@@ -70,10 +95,13 @@ export interface LocaleGroup {
 export interface FeedCatalog {
   mainFeed: FeedItem;
   localeFeeds: FeedItem[];
+  gameFeeds: FeedItem[];
+  categoryFeeds: FeedItem[];
   byLocale: LocaleGroup[];
   stats: {
     totalFeeds: number;
     localeCount: number;
+    gameCount: number;
   };
 }
 
@@ -99,10 +127,53 @@ function generateLocaleFeed(locale: string): FeedItem {
   };
 }
 
+function generateGameFeed(game: GameType, locale: string): FeedItem {
+  const info = LOCALE_NAMES[locale];
+  const gameInfo = GAMES[game];
+  return {
+    id: `${game}-${locale}`,
+    type: 'game',
+    url: `${BASE_URL}/feed/${game}/${locale}.xml`,
+    locale,
+    game,
+    displayName: `${gameInfo.name} - ${info?.name || locale}`,
+    icon: gameInfo.icon,
+  };
+}
+
+function generateCategoryFeed(game: GameType, locale: string, category: string): FeedItem {
+  const gameInfo = GAMES[game];
+  const catName = category.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  return {
+    id: `${game}-${locale}-${category}`,
+    type: 'category',
+    url: `${BASE_URL}/feed/${game}/${locale}/${category}.xml`,
+    locale,
+    game,
+    category,
+    displayName: `${gameInfo.name} ${catName}`,
+    icon: gameInfo.icon,
+  };
+}
+
 /** Generate the complete feed catalog with correct GitHub Pages URLs */
 export function getFeedCatalog(): FeedCatalog {
   const mainFeed = generateMainFeed();
   const localeFeeds = LOCALES.map(generateLocaleFeed);
+
+  const gameTypes = Object.keys(GAMES) as GameType[];
+
+  const gameFeeds: FeedItem[] = gameTypes.flatMap((game) =>
+    LOCALES.map((locale) => generateGameFeed(game, locale))
+  );
+
+  const categoryFeeds: FeedItem[] = gameTypes.flatMap((game) =>
+    LOCALES.flatMap((locale) =>
+      GAME_CATEGORIES[game].map((category) =>
+        generateCategoryFeed(game, locale, category)
+      )
+    )
+  );
 
   const byLocale: LocaleGroup[] = LOCALES.map((locale) => {
     const info = LOCALE_NAMES[locale];
@@ -113,31 +184,41 @@ export function getFeedCatalog(): FeedCatalog {
   return {
     mainFeed,
     localeFeeds,
+    gameFeeds,
+    categoryFeeds,
     byLocale,
     stats: {
-      totalFeeds: 1 + localeFeeds.length,
+      totalFeeds: 1 + localeFeeds.length + gameFeeds.length + categoryFeeds.length,
       localeCount: localeFeeds.length,
+      gameCount: gameTypes.length,
     },
   };
 }
 
 /** Search feeds by query string */
 export function searchFeeds(catalog: FeedCatalog, query: string): FeedItem[] {
-  if (!query.trim()) return [catalog.mainFeed, ...catalog.localeFeeds];
+  if (!query.trim()) return [catalog.mainFeed, ...catalog.localeFeeds, ...catalog.gameFeeds, ...catalog.categoryFeeds];
 
   const q = query.toLowerCase();
-  const all = [catalog.mainFeed, ...catalog.localeFeeds];
+  const all = [catalog.mainFeed, ...catalog.localeFeeds, ...catalog.gameFeeds, ...catalog.categoryFeeds];
   return all.filter((feed) => {
     if (
       feed.displayName.toLowerCase().includes(q) ||
       feed.url.toLowerCase().includes(q) ||
       feed.locale?.toLowerCase().includes(q) ||
-      feed.icon.includes(q)
+      feed.icon.includes(q) ||
+      feed.game?.toLowerCase().includes(q) ||
+      feed.category?.toLowerCase().includes(q)
     ) return true;
     // Check English search terms for locale feeds
     if (feed.locale) {
       const info = LOCALE_NAMES[feed.locale];
       if (info?.searchTerms?.toLowerCase().includes(q)) return true;
+    }
+    // Check game display names
+    if (feed.game) {
+      const gameInfo = GAMES[feed.game];
+      if (gameInfo?.name.toLowerCase().includes(q)) return true;
     }
     return false;
   });

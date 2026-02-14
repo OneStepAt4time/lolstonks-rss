@@ -111,7 +111,7 @@ jobs:
           asyncio.run(init_db())
           "
 
-      - name: Fetch latest news from LoL API (priority locales first)
+      - name: Fetch latest news from Riot APIs (LoL + TFT + Wild Rift)
         id: fetch_news
         # Graceful degradation: continue even if some locales fail
         continue-on-error: true
@@ -124,8 +124,8 @@ jobs:
           from src.services.update_service import UpdateServiceV2
           from src.config import get_settings
 
-          # Validated working locales - tested against Riot Next.js API (2026-02-13)
-          # 18/20 locales return 200 articles successfully
+          # Validated working locales - tested against Riot Next.js API
+          # These locales work for LoL, TFT, and Wild Rift domains
           WORKING_LOCALES = [
               'en-us',  # English - United States (primary)
               'en-gb',  # English - Great Britain
@@ -145,6 +145,11 @@ jobs:
               'vi-vn',  # Vietnamese - Vietnam
               'th-th',  # Thai - Thailand
               'id-id',  # Indonesian - Indonesia
+              'cs-cz',  # Czech - Czech Republic
+              'el-gr',  # Greek - Greece
+              'en-au',  # English - Australia
+              'en-sg',  # English - Singapore
+              'hu-hu',  # Hungarian - Hungary
               # Excluded - Riot geo-redirects these (no standalone news pages):
               # 'zh-cn' - China uses Tencent (lol.qq.com), Riot redirects with 307
               # 'ph-ph' - Philippines has no localized content, Riot redirects with 307
@@ -156,14 +161,14 @@ jobs:
               await repo.initialize()
 
               try:
-                  # Use UpdateServiceV2 with only working locales for reliable CI
+                  # UpdateServiceV2 now fetches from LoL + TFT + Wild Rift domains
+                  # with per-category sub-pages for each game
                   update_service = UpdateServiceV2(repo)
                   stats = await update_service.update_locales(WORKING_LOCALES)
 
                   print(f'Update complete: {stats[\"new_articles\"]} new articles')
                   print(f'Successful tasks: {stats[\"successful_tasks\"]}/{stats[\"total_tasks\"]}')
                   print(f'Failed tasks: {stats[\"failed_tasks\"]}')
-                  print(f'Locales fetched: {len(WORKING_LOCALES)}/{stats[\"total_tasks\"] // max(1, stats[\"total_tasks\"] // len(WORKING_LOCALES))}')
 
                   # Set output for use in conditional steps
                   with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
@@ -190,7 +195,7 @@ jobs:
 
           asyncio.run(update_news())
           "
-        timeout-minutes: 5
+        timeout-minutes: 10
 
       - name: Generate news HTML page
         if: github.event_name == 'workflow_dispatch' || steps.fetch_news.outputs.new_articles != '0'
@@ -199,12 +204,12 @@ jobs:
           uv run python scripts/generate_news_page.py --output news.html --limit "$ARTICLE_LIMIT"
         timeout-minutes: 2
 
-      - name: Generate RSS feeds
+      - name: Generate RSS feeds (LoL + TFT + Wild Rift, per-category)
         if: github.event_name == 'workflow_dispatch' || steps.fetch_news.outputs.new_articles != '0'
         run: |
           ARTICLE_LIMIT="${{ github.event.inputs.article_limit || '100' }}"
           uv run python scripts/generate_rss_feeds.py --output _site --limit "$ARTICLE_LIMIT"
-        timeout-minutes: 2
+        timeout-minutes: 5
 
       - name: Create GitHub Pages directory structure
         if: github.event_name == 'workflow_dispatch' || steps.fetch_news.outputs.new_articles != '0'
@@ -235,6 +240,12 @@ jobs:
           ls -la _site/
           echo "Feed subdirectory:"
           ls -la _site/feed/ || echo "No feed subdirectory found"
+          echo "LoL category feeds:"
+          ls _site/feed/lol/ 2>/dev/null | head -5 || echo "No LoL category feeds"
+          echo "TFT feeds:"
+          ls _site/feed/tft/ 2>/dev/null | head -5 || echo "No TFT feeds"
+          echo "Wild Rift feeds:"
+          ls _site/feed/wildrift/ 2>/dev/null | head -5 || echo "No Wild Rift feeds"
 
       - name: Add .nojekyll file
         if: github.event_name == 'workflow_dispatch' || steps.fetch_news.outputs.new_articles != '0'
@@ -261,8 +272,11 @@ jobs:
           echo ""
           echo "RSS Feeds:"
           echo "  Main feed (all articles): ${{ steps.deployment.outputs.page_url }}feed.xml"
-          echo "  English only: ${{ steps.deployment.outputs.page_url }}feed/en-us.xml"
-          echo "  Italian only: ${{ steps.deployment.outputs.page_url }}feed/it-it.xml"
+          echo "  LoL English: ${{ steps.deployment.outputs.page_url }}feed/en-us.xml"
+          echo "  LoL Italian: ${{ steps.deployment.outputs.page_url }}feed/it-it.xml"
+          echo "  LoL Game Updates: ${{ steps.deployment.outputs.page_url }}feed/lol/en-us/game-updates.xml"
+          echo "  TFT English: ${{ steps.deployment.outputs.page_url }}feed/tft/en-us.xml"
+          echo "  Wild Rift English: ${{ steps.deployment.outputs.page_url }}feed/wildrift/en-us.xml"
 
       - name: Skip deployment notification
         if: github.event_name != 'workflow_dispatch' && steps.fetch_news.outputs.new_articles == '0'

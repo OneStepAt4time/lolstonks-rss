@@ -38,6 +38,7 @@ class ArticleSource:
     # Official Riot Games sources
     RIOT_SOURCES: dict[str, dict] = {
         "lol": {"name": "League of Legends", "category": SourceCategory.OFFICIAL_RIOT},
+        "tft": {"name": "Teamfight Tactics", "category": SourceCategory.TFT},
         "riot-games": {"name": "Riot Games", "category": SourceCategory.OFFICIAL_RIOT},
         "playvalorant": {"name": "VALORANT", "category": SourceCategory.OFFICIAL_RIOT},
         "wildrift": {"name": "Wild Rift", "category": SourceCategory.OFFICIAL_RIOT},

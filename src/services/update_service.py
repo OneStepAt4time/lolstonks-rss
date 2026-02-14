@@ -16,7 +16,7 @@ from enum import Enum
 from typing import Any
 
 from src.api_client import LoLNewsAPIClient
-from src.config import RIOT_LOCALES, get_settings
+from src.config import GAME_CATEGORIES, GAME_DOMAINS, RIOT_LOCALES, get_settings
 from src.database import ArticleRepository
 from src.models import Article, ArticleSource, SourceCategory
 from src.scrapers import ALL_SCRAPER_SOURCES, get_scraper
@@ -31,9 +31,9 @@ from src.utils.metrics import (
 )
 
 # Sources that have working fetch implementations:
-# - "lol" uses LoLNewsAPIClient (special handling)
+# - "lol", "tft", "wildrift" use LoLNewsAPIClient (game domain clients)
 # - Sources in ALL_SCRAPER_SOURCES have scraper implementations
-SCRAPER_ENABLED_SOURCES: set[str] = {"lol"} | set(ALL_SCRAPER_SOURCES)
+SCRAPER_ENABLED_SOURCES: set[str] = set(GAME_DOMAINS.keys()) | set(ALL_SCRAPER_SOURCES)
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -196,19 +196,22 @@ class UpdateTask:
 
     Attributes:
         priority: Update priority (lower = higher priority)
-        source_id: Source identifier (e.g., "lol", "dexerto")
+        source_id: Source identifier (e.g., "lol", "tft", "wildrift", "dexerto")
         locale: Locale code (e.g., "en-us", "ko-kr")
         category: Source category for filtering
+        news_category: News category slug (e.g., "game-updates", "dev").
+                       None means fetch the main news page.
     """
 
     priority: UpdatePriority
     source_id: str
     locale: str
     category: SourceCategory
+    news_category: str | None = None
 
     def __hash__(self) -> int:
         """Make UpdateTask hashable for use in sets."""
-        return hash((self.source_id, self.locale))
+        return hash((self.source_id, self.locale, self.news_category))
 
 
 class UpdateServiceV2:
@@ -249,6 +252,8 @@ class UpdateServiceV2:
     # Default rate limits per domain (seconds between requests)
     DEFAULT_RATE_LIMITS: dict[str, float] = {
         "leagueoflegends.com": 2.0,
+        "teamfighttactics.leagueoflegends.com": 2.0,
+        "wildrift.leagueoflegends.com": 2.0,
         "riotgames.com": 2.0,
         "dexerto.com": 1.5,
         "dotesports.com": 1.5,
@@ -273,12 +278,19 @@ class UpdateServiceV2:
         """
         self.repository = repository
         self.max_concurrent = max_concurrent
-        self.lol_client = LoLNewsAPIClient()
         self.domain_rate_limits: dict[str, asyncio.Semaphore] = {}
         self.last_update: datetime | None = None
         self.update_count: int = 0
         self.error_count: int = 0
         self.cb_registry = get_circuit_breaker_registry()
+
+        # Create API clients for each game domain (lol, tft, wildrift)
+        self.game_clients: dict[str, LoLNewsAPIClient] = {}
+        for game_id, base_url in GAME_DOMAINS.items():
+            self.game_clients[game_id] = LoLNewsAPIClient(base_url=base_url, source_id=game_id)
+
+        # Keep backwards compat alias
+        self.lol_client = self.game_clients["lol"]
 
         # Initialize semaphores for known domains
         for domain in self.DEFAULT_RATE_LIMITS:
@@ -309,6 +321,8 @@ class UpdateServiceV2:
         # Map known sources to their domains
         domain_map: dict[str, str] = {
             "lol": "leagueoflegends.com",
+            "tft": "teamfighttactics.leagueoflegends.com",
+            "wildrift": "wildrift.leagueoflegends.com",
             "riot-games": "riotgames.com",
             "dexerto": "dexerto.com",
             "dotesports": "dotesports.com",
@@ -345,6 +359,23 @@ class UpdateServiceV2:
             logger.debug(f"Rate limiting {domain}: {rate_limit}s delay")
             await asyncio.sleep(rate_limit)
 
+    async def _fetch_game_news(
+        self, game_id: str, locale: str, news_category: str | None = None
+    ) -> list[Article]:
+        """
+        Fetch news from a Riot game domain API for a specific locale and category.
+
+        Args:
+            game_id: Game identifier ("lol", "tft", "wildrift")
+            locale: Locale code (e.g., "en-us", "ko-kr")
+            news_category: Optional category slug (e.g., "game-updates", "dev")
+
+        Returns:
+            List of Article instances
+        """
+        client = self.game_clients[game_id]
+        return await client.fetch_news(locale, category=news_category)
+
     async def _fetch_lol_news(self, locale: str) -> list[Article]:
         """
         Fetch news from official LoL API for a specific locale.
@@ -355,7 +386,7 @@ class UpdateServiceV2:
         Returns:
             List of Article instances
         """
-        return await self.lol_client.fetch_news(locale)
+        return await self._fetch_game_news("lol", locale)
 
     async def _update_source(self, task: UpdateTask) -> int:
         """
@@ -374,7 +405,11 @@ class UpdateServiceV2:
         Raises:
             Exception: Propagates exceptions for logging (caught by caller)
         """
-        logger.info(f"Updating {task.source_id}:{task.locale} " f"(priority: {task.priority.name})")
+        cat_label = f"/{task.news_category}" if task.news_category else ""
+        logger.info(
+            f"Updating {task.source_id}:{task.locale}{cat_label} "
+            f"(priority: {task.priority.name})"
+        )
 
         # Respect rate limit before fetching
         await self._respect_rate_limit(task.source_id)
@@ -384,9 +419,11 @@ class UpdateServiceV2:
         try:
             # Track scraping duration
             with track_scraping_duration(task.source_id, task.locale):
-                # Use LoL API client for official Riot sources
-                if task.source_id == "lol":
-                    articles = await self._fetch_lol_news(task.locale)
+                # Use game domain client for Riot game sources (lol, tft, wildrift)
+                if task.source_id in self.game_clients:
+                    articles = await self._fetch_game_news(
+                        task.source_id, task.locale, task.news_category
+                    )
                 # Use scraper for other sources
                 elif task.source_id in ALL_SCRAPER_SOURCES:
                     scraper = get_scraper(task.source_id, task.locale)
@@ -490,15 +527,29 @@ class UpdateServiceV2:
             # Determine priority
             task_priority = priority or self._get_priority(category)
 
-            # Create task for each locale
-            for locale in locales:
-                task = UpdateTask(
-                    priority=task_priority,
-                    source_id=source_id,
-                    locale=locale,
-                    category=category,
-                )
-                tasks.append(task)
+            # For game domain sources, create tasks for main + each news category
+            if source_id in GAME_DOMAINS:
+                news_categories: list[str | None] = [None] + GAME_CATEGORIES.get(source_id, [])
+                for news_cat in news_categories:
+                    for locale in locales:
+                        task = UpdateTask(
+                            priority=task_priority,
+                            source_id=source_id,
+                            locale=locale,
+                            category=category,
+                            news_category=news_cat,
+                        )
+                        tasks.append(task)
+            else:
+                # Non-game sources: one task per locale (current behavior)
+                for locale in locales:
+                    task = UpdateTask(
+                        priority=task_priority,
+                        source_id=source_id,
+                        locale=locale,
+                        category=category,
+                    )
+                    tasks.append(task)
 
         # Sort by priority (lower first = higher priority)
         tasks.sort(key=lambda t: t.priority)
