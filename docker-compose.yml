@@ -40,7 +40,7 @@ services:
       # CORS Configuration
       # For production, set to your actual domain(s)
       # Example: https://yourdomain.com,https://www.yourdomain.com
-      - ALLOWED_ORIGINS=http://localhost:8000
+      - ALLOWED_ORIGINS=http://localhost:8002
 
       # HTTP Client Configuration
       - HTTP_TIMEOUT_SECONDS=30

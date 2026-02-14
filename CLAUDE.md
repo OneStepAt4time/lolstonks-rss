@@ -363,6 +363,37 @@ git push
 
 ---
 
+## 🚀 Release Process
+
+### Creating a Release
+
+1. Ensure master is stable (all CI checks pass)
+2. Create and push a version tag:
+   ```bash
+   git tag -a v2.1.0 -m "Release v2.1.0"
+   git push origin v2.1.0
+   ```
+3. This automatically triggers:
+   - `release.yml`: Creates GitHub Release with auto-generated changelog
+   - `docker-publish.yml`: Builds and pushes multi-platform Docker image to GHCR
+
+### Version Tags
+
+- Follow semantic versioning: `vMAJOR.MINOR.PATCH`
+- Pre-release: `v2.1.0-beta.1`, `v2.1.0-rc.1`
+- Docker images are tagged: `2.1.0`, `2.1`, `2`, `latest`
+
+### Docker Images
+
+- Registry: `ghcr.io/onestepat4time/lolstonks-rss`
+- Pull: `docker pull ghcr.io/onestepat4time/lolstonks-rss:latest`
+
+### Version Detection
+
+The application version is set via the `APP_VERSION` environment variable (injected as a Docker build arg during CI). Fallback chain: `APP_VERSION` env var -> `importlib.metadata` -> `0.0.0.dev0`.
+
+---
+
 ## 🤖 Agent-Specific Instructions
 
 When delegating work to agents (python-pro, devops-engineer, etc.):
