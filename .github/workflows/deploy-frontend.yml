@@ -87,20 +87,23 @@ jobs:
           asyncio.run(init_db())
           "
 
-      - name: Fetch latest news from LoL API
+      - name: Fetch latest news from Riot APIs (LoL + TFT + Wild Rift)
+        continue-on-error: true
         run: |
           uv run python -c "
           import asyncio
           import os
+          import sys
           from src.database import ArticleRepository
           from src.services.update_service import UpdateServiceV2
           from src.config import get_settings
 
-          # Only fetch from the official Riot API (lol source)
-          # HTML scrapers are too slow and unreliable for deployment
+          # Validated working locales - tested against Riot Next.js API
           WORKING_LOCALES = [
               'en-us', 'en-gb', 'es-es', 'es-mx', 'fr-fr', 'de-de',
-              'it-it', 'pt-br', 'ja-jp', 'ko-kr',
+              'it-it', 'pt-br', 'ja-jp', 'ko-kr', 'ru-ru', 'tr-tr',
+              'pl-pl', 'zh-tw', 'ar-ae', 'vi-vn', 'th-th', 'id-id',
+              'cs-cz', 'el-gr', 'en-au', 'en-sg', 'hu-hu',
           ]
 
           async def update_news():
@@ -108,18 +111,23 @@ jobs:
               repo = ArticleRepository(settings.database_path)
               await repo.initialize()
 
-              update_service = UpdateServiceV2(repo)
-              # Only use 'lol' source (official Riot API) - it's fast and reliable
-              stats = await update_service.update_source('lol', WORKING_LOCALES)
+              try:
+                  update_service = UpdateServiceV2(repo)
+                  stats = await update_service.update_locales(WORKING_LOCALES)
 
-              print(f'Update complete: {stats[\"new_articles\"]} new articles')
-              print(f'Total articles in DB: {stats.get(\"total_articles\", 0)}')
+                  print(f'Update complete: {stats[\"new_articles\"]} new articles')
+                  print(f'Successful tasks: {stats[\"successful_tasks\"]}/{stats[\"total_tasks\"]}')
+                  print(f'Failed tasks: {stats[\"failed_tasks\"]}')
 
-              await repo.close()
+                  if stats['total_tasks'] > 0 and stats['successful_tasks'] == 0:
+                      print('WARNING: All update tasks failed!')
+                      sys.exit(1)
+              finally:
+                  await repo.close()
 
           asyncio.run(update_news())
           "
-        timeout-minutes: 3
+        timeout-minutes: 10
 
       - name: Generate RSS feeds to frontend dist
         run: |
