@@ -54,10 +54,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/lolstonksrss"
-Documentation = "https://github.com/yourusername/lolstonksrss/blob/main/README.md"
-Repository = "https://github.com/yourusername/lolstonksrss"
-Issues = "https://github.com/yourusername/lolstonksrss/issues"
+Homepage = "https://github.com/OneStepAt4time/lolstonks-rss"
+Documentation = "https://github.com/OneStepAt4time/lolstonks-rss/blob/main/README.md"
+Repository = "https://github.com/OneStepAt4time/lolstonks-rss"
+Issues = "https://github.com/OneStepAt4time/lolstonks-rss/issues"
 
 [build-system]
 requires = ["hatchling"]
