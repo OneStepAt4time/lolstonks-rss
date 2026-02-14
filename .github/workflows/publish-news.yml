@@ -40,7 +40,7 @@ on:
 
 # Ensure only one workflow runs at a time to prevent conflicts
 concurrency:
-  group: publish-news
+  group: "pages"
   cancel-in-progress: false
 
 # Required permissions for GitHub Pages deployment
@@ -197,65 +197,51 @@ jobs:
           "
         timeout-minutes: 10
 
-      - name: Generate news HTML page
+      # Build React frontend so scheduled deploys include the SPA
+      - name: Setup Node.js
         if: github.event_name == 'workflow_dispatch' || steps.fetch_news.outputs.new_articles != '0'
-        run: |
-          ARTICLE_LIMIT="${{ github.event.inputs.article_limit || '100' }}"
-          uv run python scripts/generate_news_page.py --output news.html --limit "$ARTICLE_LIMIT"
-        timeout-minutes: 2
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'frontend/package-lock.json'
 
-      - name: Generate RSS feeds (LoL + TFT + Wild Rift, per-category)
+      - name: Install frontend dependencies
+        if: github.event_name == 'workflow_dispatch' || steps.fetch_news.outputs.new_articles != '0'
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Build frontend
+        if: github.event_name == 'workflow_dispatch' || steps.fetch_news.outputs.new_articles != '0'
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Generate RSS feeds into frontend dist (LoL + TFT + Wild Rift, per-category)
         if: github.event_name == 'workflow_dispatch' || steps.fetch_news.outputs.new_articles != '0'
         run: |
           ARTICLE_LIMIT="${{ github.event.inputs.article_limit || '100' }}"
-          uv run python scripts/generate_rss_feeds.py --output _site --limit "$ARTICLE_LIMIT"
+          uv run python scripts/generate_rss_feeds.py --output ./frontend/dist --limit "$ARTICLE_LIMIT"
         timeout-minutes: 5
 
-      - name: Create GitHub Pages directory structure
+      - name: Verify deployment directory
         if: github.event_name == 'workflow_dispatch' || steps.fetch_news.outputs.new_articles != '0'
         run: |
-          # Copy HTML page
-          cp news.html _site/index.html
-
-          # Create a simple redirect page for news.html
-          printf '%s\n' \
-            '<!DOCTYPE html>' \
-            '<html>' \
-            '<head>' \
-            '  <meta http-equiv="refresh" content="0; url=/lolstonksrss/">' \
-            '  <script>window.location.href = "/lolstonksrss/";</script>' \
-            '</head>' \
-            '<body>' \
-            '  Redirecting to <a href="/lolstonksrss/">/lolstonksrss/</a>...' \
-            '</body>' \
-            '</html>' > _site/news.html
-
-          # Copy any static assets if they exist
-          if [ -d "static" ]; then
-            cp -r static _site/
-          fi
-
-          # Verify feed files were generated
-          echo "Verifying generated files:"
-          ls -la _site/
+          echo "Frontend dist contents:"
+          ls -la ./frontend/dist/
           echo "Feed subdirectory:"
-          ls -la _site/feed/ || echo "No feed subdirectory found"
+          ls -la ./frontend/dist/feed/ || echo "No feed subdirectory found"
           echo "LoL category feeds:"
-          ls _site/feed/lol/ 2>/dev/null | head -5 || echo "No LoL category feeds"
+          ls ./frontend/dist/feed/lol/ 2>/dev/null | head -5 || echo "No LoL category feeds"
           echo "TFT feeds:"
-          ls _site/feed/tft/ 2>/dev/null | head -5 || echo "No TFT feeds"
+          ls ./frontend/dist/feed/tft/ 2>/dev/null | head -5 || echo "No TFT feeds"
           echo "Wild Rift feeds:"
-          ls _site/feed/wildrift/ 2>/dev/null | head -5 || echo "No Wild Rift feeds"
-
-      - name: Add .nojekyll file
-        if: github.event_name == 'workflow_dispatch' || steps.fetch_news.outputs.new_articles != '0'
-        run: touch _site/.nojekyll
+          ls ./frontend/dist/feed/wildrift/ 2>/dev/null | head -5 || echo "No Wild Rift feeds"
 
       - name: Upload artifact for GitHub Pages
         if: github.event_name == 'workflow_dispatch' || steps.fetch_news.outputs.new_articles != '0'
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '_site'
+          path: './frontend/dist'
 
       - name: Deploy to GitHub Pages
         id: deployment
